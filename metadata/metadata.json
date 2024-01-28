@@ -3,7 +3,7 @@
     "description": "This is a processing log pipeline",
     "parameters": [
       {
-        "name": "input-files",
+        "name": "input-file",
         "label": "Input File",
         "helpText": "Path to the input file"
       },
@@ -13,4 +13,4 @@
         "helpText": "Path to the output file"
       }
     ]
-  }
+}
