@@ -11,7 +11,7 @@ if __name__ == '__main__':
     output_file = 'log_entries_large.txt'
 
     with open(output_file, 'w') as file:
-        for _ in range(10000000):
+        for _ in range(100):
             file.write(generate_log_entry() + '\n')
 
     print(f"Generated log entries file: {output_file}")

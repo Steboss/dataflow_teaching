@@ -56,6 +56,9 @@ def run_pipeline(argv=None, save_main_session=True):
             | 'WriteToText' >> beam.io.WriteToText(known_args.output)
         )
 
+    current_running_pipe = pipeline.run()
+    current_running_pipe.wait_until_finish()
+
 
 if __name__ == '__main__':
     start_time = time.time()
