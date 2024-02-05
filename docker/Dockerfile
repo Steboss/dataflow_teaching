@@ -1,6 +1,6 @@
 FROM gcr.io/dataflow-templates-base/python39-template-launcher-base:20230622_RC00
 
-ARG WORKDIR=/dataflow/template
+ARG WORKDIR=/template
 RUN mkdir -p $WORKDIR
 WORKDIR ${WORKDIR}
 
