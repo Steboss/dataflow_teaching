@@ -49,6 +49,10 @@ def run_pipeline(argv=None):
         streaming=False,
         save_main_session=True,
         job_name=known_args.job_name,
+        project=known_args.project,
+        temp_location=known_args.temp_location,
+        region=known_args.region,
+        staging_location=known_args.staging_location
     )
 
     with beam.Pipeline(options=pipeline_options) as pipeline:
