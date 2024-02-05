@@ -1,4 +1,4 @@
-FROM gcr.io/dataflow-templates-base/python39-template-launcher-base:20230622_RC00
+FROM gcr.io/dataflow-templates-base/python39-template-launcher-base
 
 ARG WORKDIR=/template
 RUN mkdir -p $WORKDIR
@@ -23,6 +23,6 @@ RUN apt-get update \
 ENV FLEX_TEMPLATE_PYTHON_REQUIREMENTS_FILE="${WORKDIR}/requirements.txt"
 ENV FLEX_TEMPLATE_PYTHON_PY_FILE="${WORKDIR}/pipeline/processing_logs.py"
 ENV FLEX_TEMPLATE_PYTHON_SETUP_FILE="${WORKDIR}/setup.py"
-#RUN python setup.py install
 
 ENV PIP_NO_DEPS=True
+ENTRYPOINT [ "/opt/apache/beam/boot" ]

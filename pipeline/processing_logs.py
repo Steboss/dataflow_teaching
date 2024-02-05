@@ -1,7 +1,6 @@
 import argparse
 import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions
-from apache_beam.options.pipeline_options import SetupOptions
 from structlog import get_logger
 import time
 
@@ -35,16 +34,24 @@ class CalculateAverageDuration(beam.CombineFn):
         return total_duration / count if count != 0 else 0
 
 
-def run_pipeline(argv=None, save_main_session=True):
+def run_pipeline(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--input-file', dest='input', required=True)
     parser.add_argument('--output-file', dest='output', required=True)
+    parser.add_argument('--job_name', dest='job_name', required=True)
+    parser.add_argument('--project', dest='project', required=True)
+    parser.add_argument('--temp_location', dest='temp_location', required=True)
+    parser.add_argument('--region', dest='region', required=True)
+    parser.add_argument('--staging_location', dest='staging_location', required=True)
     known_args, pipeline_args = parser.parse_known_args(argv)
-    pipeline_options = PipelineOptions(pipeline_args)
-    pipeline_options.view_as(SetupOptions).save_main_session = save_main_session
-    options = PipelineOptions(['--runner=DirectRunner'])
+    pipeline_options = PipelineOptions(
+        pipeline_args,
+        streaming=False,
+        save_main_session=True,
+        job_name=known_args.job_name,
+    )
 
-    with beam.Pipeline(options=options) as pipeline:
+    with beam.Pipeline(options=pipeline_options) as pipeline:
         results = (
             pipeline
             | 'ReadFromText' >> beam.io.ReadFromText(known_args.input)
@@ -56,8 +63,8 @@ def run_pipeline(argv=None, save_main_session=True):
             | 'WriteToText' >> beam.io.WriteToText(known_args.output)
         )
 
-    current_running_pipe = pipeline.run()
-    current_running_pipe.wait_until_finish()
+    #current_running_pipe = pipeline.run()
+    #current_running_pipe.wait_until_finish()
 
 
 if __name__ == '__main__':

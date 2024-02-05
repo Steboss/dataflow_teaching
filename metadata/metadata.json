@@ -11,6 +11,31 @@
         "name": "output-file",
         "label": "Output File",
         "helpText": "Path to the output file"
+      },
+      {
+        "name": "project",
+        "label": "GCP project",
+        "helpText": "Project to run the dataflow job on"
+      },
+      {
+        "name": "job_name",
+        "label": "Dataflow job name",
+        "helpText": "Name of the dataflow job"
+      },
+      {
+        "name": "region",
+        "label": "Region",
+        "helpText": "Region to run the dataflow job in"
+      },
+      {
+        "name": "temp_location",
+        "label": "Temp Location",
+        "helpText": "Location to store temporary files"
+      },
+      {
+        "name": "staging_location",
+        "label": "Staging Location",
+        "helpText": "Location to store staging files"
       }
     ]
 }
