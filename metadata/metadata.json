@@ -26,16 +26,6 @@
         "name": "region",
         "label": "Region",
         "helpText": "Region to run the dataflow job in"
-      },
-      {
-        "name": "temp_location",
-        "label": "Temp Location",
-        "helpText": "Location to store temporary files"
-      },
-      {
-        "name": "staging_location",
-        "label": "Staging Location",
-        "helpText": "Location to store staging files"
       }
     ]
 }

@@ -40,9 +40,7 @@ def run_pipeline(argv=None):
     parser.add_argument('--output-file', dest='output', required=True)
     parser.add_argument('--job_name', dest='job_name', required=True)
     parser.add_argument('--project', dest='project', required=True)
-    parser.add_argument('--temp_location', dest='temp_location', required=True)
     parser.add_argument('--region', dest='region', required=True)
-    parser.add_argument('--staging_location', dest='staging_location', required=True)
     known_args, pipeline_args = parser.parse_known_args(argv)
     pipeline_options = PipelineOptions(
         pipeline_args,
@@ -50,9 +48,7 @@ def run_pipeline(argv=None):
         save_main_session=True,
         job_name=known_args.job_name,
         project=known_args.project,
-        temp_location=known_args.temp_location,
-        region=known_args.region,
-        staging_location=known_args.staging_location
+        region=known_args.region
     )
 
     with beam.Pipeline(options=pipeline_options) as pipeline:
@@ -66,9 +62,6 @@ def run_pipeline(argv=None):
             | 'FormatOutput' >> beam.Map(lambda kv: f'Event Type: {kv[0]}, Average Duration: {kv[1]:.2f}')
             | 'WriteToText' >> beam.io.WriteToText(known_args.output)
         )
-
-    #current_running_pipe = pipeline.run()
-    #current_running_pipe.wait_until_finish()
 
 
 if __name__ == '__main__':
