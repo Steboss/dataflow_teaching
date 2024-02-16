@@ -3,7 +3,7 @@
 echo "Build Docker image"
 docker build --no-cache -t window_pipeline -f docker/Dockerfile .
 echo "Tag Docker image"
-docker tag processing_pipeline europe-west2-docker.pkg.dev/long-axle-412512/window_pipeline/window_pipeline:latest
+docker tag window_pipeline europe-west2-docker.pkg.dev/long-axle-412512/window_pipeline/window_pipeline:latest
 echo "Push Docker image"
 docker push europe-west2-docker.pkg.dev/long-axle-412512/window_pipeline/window_pipeline:latest
 
