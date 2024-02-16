@@ -20,5 +20,5 @@ gcloud dataflow flex-template run ${PIPELINE_NAME} \
 --parameters job_name=window-pipeline \
 --parameters project=${PROJECT} \
 --parameters region=${REGION} \
---parameters input-file=gs://input_files_my_pipeline/input_file.txt \
---parameters output-file=gs://input_files_my_pipeline/output
+--parameters input_subscription=projects/long-axle-412512/topics/example-window-pipeline \
+--parameters output_subscription=projects/long-axle-412512/topics/example-output-window-pipeline
