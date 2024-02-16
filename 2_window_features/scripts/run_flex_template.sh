@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PIPELINE_NAME="processing-pipeline"
+PIPELINE_NAME="window-pipeline"
 PROJECT="long-axle-412512"
 DATAFLOW_GCS_LOCATION="gs://flex_templates_my_pipeline/window_template.json"
 NUM_MAX_WORKERS=2
