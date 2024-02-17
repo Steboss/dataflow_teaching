@@ -17,8 +17,8 @@ class ComputeMovingAverageFn(beam.DoFn):
 
 def run_pipeline(argv=None):
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input_subscription', dest='input_subscription', required=True)
-    parser.add_argument('--output_subscription', dest='output_subscription', required=True)
+    parser.add_argument('--input-subscription', dest='input_subscription', required=True)
+    parser.add_argument('--output-subscription', dest='output_subscription', required=True)
     parser.add_argument('--job_name', dest='job_name', required=True)
     parser.add_argument('--project', dest='project', required=True)
     parser.add_argument('--region', dest='region', required=True)
