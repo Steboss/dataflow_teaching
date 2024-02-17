@@ -34,14 +34,13 @@ def run_pipeline(argv=None):
 
     with beam.Pipeline(options=pipeline_options) as p:
         (p
-         | 'Read from Pub/Sub' >> beam.io.ReadFromPubSub(topic=known_args.input_subscription)
-         | 'Decode' >> beam.Map(lambda x: x.decode('utf-8'))
-         | 'Parse JSON' >> beam.Map(lambda x: beam.coders.RowCoder(x))
+         | 'Read from Pub/Sub' >> beam.io.ReadFromPubSub(subscription=known_args.input_subscription)
+         | 'Parse JSON' >> beam.Map(lambda x: json.loads(x))
          | 'Window into' >> beam.WindowInto(window.FixedWindows(60))  # 60-second windows
          | 'Group by Key' >> beam.GroupByKey()
          | 'Compute Moving Average' >> beam.ParDo(ComputeMovingAverageFn())
          | 'Encode JSON' >> beam.Map(lambda x: json.dumps(x).encode('utf-8'))
-         | 'Write to Pub/Sub' >> beam.io.WriteToPubSub(topic=known_args.output_subscription)
+         | 'Write to Pub/Sub' >> beam.io.WriteToPubSub(subscription=known_args.output_subscription)
         )
 
 
