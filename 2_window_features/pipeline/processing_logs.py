@@ -11,9 +11,12 @@ logger = get_logger()
 class ComputeMovingAverageFn(beam.DoFn):
     def process(self, element, window=beam.DoFn.WindowParam):
         timestamp, values = element
-        logger.info(f"Processing {values}, timestamp {timestamp}")
-        avg_value = sum(values) / len(values) if values else 0
+        # Convert values to floats to ensure they are numeric
+        numeric_values = [float(v) for v in values if isinstance(v, (int, float, str)) and v.strip().replace('.','',1).isdigit()]
+
+        avg_value = sum(numeric_values) / len(numeric_values) if numeric_values else 0
         yield {'window': window.start, 'average': avg_value}
+
 
 
 def run_pipeline(argv=None):
