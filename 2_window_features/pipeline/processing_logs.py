@@ -11,6 +11,7 @@ logger = get_logger()
 class ComputeMovingAverageFn(beam.DoFn):
     def process(self, element, window=beam.DoFn.WindowParam):
         timestamp, values = element
+        logger.info(f"Processing {values}, timestamp {timestamp}")
         avg_value = sum(values) / len(values) if values else 0
         yield {'window': window.start, 'average': avg_value}
 
