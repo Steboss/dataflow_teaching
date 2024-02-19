@@ -18,7 +18,6 @@ class ComputeMovingAverageFn(beam.DoFn):
         yield {'window': window.start, 'average': avg_value}
 
 
-
 def run_pipeline(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--input-subscription', dest='input_subscription', required=True)
@@ -43,8 +42,9 @@ def run_pipeline(argv=None):
          | 'Window into' >> beam.WindowInto(window.FixedWindows(60))  # 60-second windows
          | 'Group by Key' >> beam.GroupByKey()
          | 'Compute Moving Average' >> beam.ParDo(ComputeMovingAverageFn())
-         | 'Encode JSON' >> beam.Map(lambda x: json.dumps(x).encode('utf-8'))
-         | 'Write to Pub/Sub' >> beam.io.WriteToPubSub(topic=known_args.output_topic) # <-- this is wrong
+         | 'Print results' >> beam.Map(logger.info)
+        #  | 'Encode JSON' >> beam.Map(lambda x: json.dumps(x).encode('utf-8'))
+        #  | 'Write to Pub/Sub' >> beam.io.WriteToPubSub(topic=known_args.output_topic) #
         )
 
 
