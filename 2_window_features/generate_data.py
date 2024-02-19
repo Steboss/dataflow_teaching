@@ -1,18 +1,23 @@
+from google.cloud import pubsub_v1
+import time
 import random
-from datetime import datetime, timedelta
+import json
 
-def generate_log_entry():
-    timestamp = datetime(2022, 1, 1, 12, 0, 0) + timedelta(minutes=random.randint(0, 1440))
-    event_type = f"event_type_{random.choice(['A', 'B', 'C'])}"
-    duration = round(random.uniform(5.0, 30.0), 2)
-    return f"{timestamp.isoformat()},{event_type},{duration}"
+project_id = "long-axle-412512"
+topic_id = "example-window-pipeline"
 
-if __name__ == '__main__':
-    output_file = 'log_entries_large.txt'
+publisher = pubsub_v1.PublisherClient()
+topic_path = publisher.topic_path(project_id, topic_id)
 
-    with open(output_file, 'w') as file:
-        for _ in range(100):
-            file.write(generate_log_entry() + '\n')
+def generate_data():
+    while True:
+        data = {
+            "timestamp": int(time.time()),
+            "value": random.randint(1, 100)
+        }
+        message = json.dumps(data)
+        publisher.publish(topic_path, message.encode("utf-8"))
+        time.sleep(1)
 
-    print(f"Generated log entries file: {output_file}")
-
+if __name__ == "__main__":
+    generate_data()
