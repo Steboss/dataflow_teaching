@@ -18,7 +18,7 @@ class ComputeMovingAverageFn(beam.DoFn):
 def run_pipeline(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--input-subscription', dest='input_subscription', required=True)
-    parser.add_argument('--output-subscription', dest='output_subscription', required=True)
+    parser.add_argument('--output-topic', dest='output_topic', required=True)
     parser.add_argument('--job_name', dest='job_name', required=True)
     parser.add_argument('--project', dest='project', required=True)
     parser.add_argument('--region', dest='region', required=True)
@@ -40,7 +40,7 @@ def run_pipeline(argv=None):
          | 'Group by Key' >> beam.GroupByKey()
          | 'Compute Moving Average' >> beam.ParDo(ComputeMovingAverageFn())
          | 'Encode JSON' >> beam.Map(lambda x: json.dumps(x).encode('utf-8'))
-         | 'Write to Pub/Sub' >> beam.io.WriteToPubSub(subscription=known_args.output_subscription)
+         | 'Write to Pub/Sub' >> beam.io.WriteToPubSub(topic=known_args.output_topic) # <-- this is wrong
         )
 
 

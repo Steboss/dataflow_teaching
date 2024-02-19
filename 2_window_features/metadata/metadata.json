@@ -5,11 +5,11 @@
       {
         "name": "input-subscription",
         "label": "Input Subscription",
-        "helpText": "Input topic for pub/sub"
+        "helpText": "Input subscription for pub/sub"
       },
       {
-        "name": "output-subscription",
-        "label": "Output Subscription",
+        "name": "output-topic",
+        "label": "Output Topic",
         "helpText": "Output topic for pub/sub"
       },
       {
