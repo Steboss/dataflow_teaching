@@ -54,7 +54,6 @@ def run_pipeline(argv=None):
          | 'Compute Moving Average' >> beam.ParDo(ComputeMovingAverageFn())
          | 'Encode JSON' >> beam.Map(lambda x: json.dumps(x).encode('utf-8'))
          | 'Write to Pub/Sub' >> beam.io.WriteToPubSub(topic=known_args.output_topic)
-         #| 'Print' >> beam.Map(print)
          )
 
 
