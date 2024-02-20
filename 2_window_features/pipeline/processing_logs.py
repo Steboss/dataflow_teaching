@@ -9,14 +9,23 @@ logger = get_logger()
 
 
 class ComputeMovingAverageFn(beam.DoFn):
-    def process(self, element, window=beam.DoFn.WindowParam):
-        timestamp, values = element
-        # Convert values to floats to ensure they are numeric
-        numeric_values = [float(v) for v in values if isinstance(v, (int, float, str)) and v.strip().replace('.','',1).isdigit()]
+    def process(self, element):
+        # element is a tuple of the form (event_type, values)
+        event_type, values = element
 
-        avg_value = sum(numeric_values) / len(numeric_values) if numeric_values else 0
-        yield {'window': window.start, 'average': avg_value}
+        # Convert iterable of values to a list to enable multiple iterations
+        values_list = list(values)
 
+        # Ensure there are values to compute an average
+        if values_list:
+            total = sum(values_list)
+            count = len(values_list)
+            average = total / count
+            yield {
+                'event_type': event_type,
+                'average': average,
+                'count': count  # Optional: include count for transparency
+            }
 
 def run_pipeline(argv=None):
     parser = argparse.ArgumentParser()
@@ -39,7 +48,8 @@ def run_pipeline(argv=None):
         (p
          | 'Read from Pub/Sub' >> beam.io.ReadFromPubSub(subscription=known_args.input_subscription)
          | 'Parse JSON' >> beam.Map(lambda x: json.loads(x))
-         | 'Window into' >> beam.WindowInto(window.FixedWindows(60))  # 60-second windows
+         | 'Window into' >> beam.WindowInto(window.FixedWindows(60))
+         | 'WithKeys' >> beam.Map(lambda element: (element['event_type'], element['value']))
          | 'Group by Key' >> beam.GroupByKey()
          | 'Compute Moving Average' >> beam.ParDo(ComputeMovingAverageFn())
          | 'Print results' >> beam.Map(print)
