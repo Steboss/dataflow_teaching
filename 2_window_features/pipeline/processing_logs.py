@@ -52,10 +52,9 @@ def run_pipeline(argv=None):
          | 'WithKeys' >> beam.Map(lambda element: (element['event_type'], element['value']))
          | 'Group by Key' >> beam.GroupByKey()
          | 'Compute Moving Average' >> beam.ParDo(ComputeMovingAverageFn())
-         | 'Print results' >> beam.Map(print)
-        #  | 'Encode JSON' >> beam.Map(lambda x: json.dumps(x).encode('utf-8'))
-        #  | 'Write to Pub/Sub' >> beam.io.WriteToPubSub(topic=known_args.output_topic) #
-        )
+         | 'Encode JSON' >> beam.Map(lambda x: json.dumps(x).encode('utf-8'))
+         | 'Write to Pub/Sub' >> beam.io.WriteToPubSub(topic=known_args.output_topic)
+         )
 
 
 if __name__ == '__main__':
