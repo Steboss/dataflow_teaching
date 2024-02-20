@@ -53,8 +53,8 @@ def run_pipeline(argv=None):
          | 'Group by Key' >> beam.GroupByKey()
          | 'Compute Moving Average' >> beam.ParDo(ComputeMovingAverageFn())
          | 'Encode JSON' >> beam.Map(lambda x: json.dumps(x).encode('utf-8'))
-         | 'Print' >> beam.Map(print)
-         #| 'Write to Pub/Sub' >> beam.io.WriteToPubSub(topic=known_args.output_topic)
+         | 'Write to Pub/Sub' >> beam.io.WriteToPubSub(topic=known_args.output_topic)
+         #| 'Print' >> beam.Map(print)
          )
 
 
