@@ -1,10 +1,10 @@
 #!/bin/bash
 
-PIPELINE_NAME="window-pipeline"
+PIPELINE_NAME="whisper-pipeline"
 PROJECT="long-axle-412512"
 REGION="europe-west1"
-DATAFLOW_GCS_LOCATION="gs://flex_templates_my_pipeline/window_template.json"
-NUM_MAX_WORKERS=2
+DATAFLOW_GCS_LOCATION="gs://flex_templates_my_pipeline/whisper_template.json"
+NUM_MAX_WORKERS=10
 
 echo "Running Flex Template"
 gcloud dataflow flex-template run ${PIPELINE_NAME} \
@@ -12,11 +12,14 @@ gcloud dataflow flex-template run ${PIPELINE_NAME} \
 --template-file-gcs-location=${DATAFLOW_GCS_LOCATION} \
 --worker-region=${REGION} \
 --region=${REGION} \
---worker-machine-type=n1-standard-2 \
+--worker-machine-type=n4-standard-2 \
 --max-workers=$NUM_MAX_WORKERS  \
---num-workers=1  \
+--num-workers=5  \
 --temp-location=gs://mypipelines-dataflow-temp/ \
 --staging-location=gs://dataflow-staging-europe-west2-1028464732444/ \
+--disk_size_gb=50 \
+--dataflow_service_options="worker_accelerator=type:nvidia-tesla-t4;count:1;install-nvidia-driver" \
+--worker_harness_container_image="europe-west2-docker.pkg.dev/long-axle-412512/whisper-pipeline/whisper_pipeline_flex:latest" \
 --parameters job_name=window-pipeline \
 --parameters project=${PROJECT} \
 --parameters region=${REGION} \

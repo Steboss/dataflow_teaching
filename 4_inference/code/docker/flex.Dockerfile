@@ -1,5 +1,5 @@
 FROM gcr.io/dataflow-templates-base/python39-template-launcher-base AS template_launcher
-FROM REGISTRY
+FROM europe-west2-docker.pkg.dev/long-axle-412512/whisper-pipeline/whisper_pipeline:latest
 
 COPY --from=template_launcher /opt/google/dataflow/python_template_launcher /opt/google/dataflow/python_template_launcher
 
