@@ -12,16 +12,16 @@ RUN apt-get update \
 
 # copy model artifact
 # this was /pipeline
-ARG WORKDIR=/dataflow/template
+ARG WORKDIR=/pipeline/
 
+RUN apt-get -y install git
 # download ggml and install whisper
 RUN git clone https://github.com/ggerganov/ggml.git \
     && cd ggml \
     && mkdir build && cd build \
     && cmake .. \
     && make -j4 whisper
-# Ensure whisper binary is in PATH
-ENV PATH="/dataflow/template/ggml/build/bin:${PATH}"
+
 # install python dependencies
 COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
