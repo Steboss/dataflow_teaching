@@ -27,8 +27,8 @@ COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 
 COPY pipeline pipeline
-COPY requirements.txt requirements.txt
-COPY setup.py setup.py
+COPY requirements.txt /pipeline/requirements.txt
+COPY setup.py /pipeline/setup.py
 ENV PYTHONPATH ${WORKDIR}
 
 ENTRYPOINT [ "/opt/apache/beam/boot" ]

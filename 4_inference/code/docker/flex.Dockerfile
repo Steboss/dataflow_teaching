@@ -9,7 +9,7 @@ WORKDIR ${WORKDIR}
 RUN mv /pipeline/* ${WORKDIR}
 ENV PATH="/dataflow/template/ggml/build/bin:${PATH}"
 # flex environment variables
-ENV FLEX_TEMPLATE_PYTHON_PY_FILE="${WORKDIR}/pipeline/whisper_pipeline.py"
+ENV FLEX_TEMPLATE_PYTHON_PY_FILE="${WORKDIR}/whisper_pipeline.py"
 ENV FLEX_TEMPLATE_PYTHON_REQUIREMENTS_FILE="${WORKDIR}/requirements.txt"
 ENV FLEX_TEMPLATE_PYTHON_SETUP_FILE="${WORKDIR}/setup.py"
 ENV PIP_NO_DEPS=True
