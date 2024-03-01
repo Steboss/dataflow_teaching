@@ -55,7 +55,7 @@ def run_pipeline(argv=None):
     google_cloud_options.project = known_args.project
     google_cloud_options.job_name = known_args.job_name
     google_cloud_options.region = known_args.region
-    google_cloud_options.disk_size_gb = 50
+    #google_cloud_options.disk_size_gb = 50
 
     # Additional experiments for GPU configuration - to be used when launching the job
     additional_experiments = [
