@@ -3,6 +3,10 @@ FROM europe-west2-docker.pkg.dev/long-axle-412512/whisper-pipeline/whisper_pipel
 
 COPY --from=template_launcher /opt/google/dataflow/python_template_launcher /opt/google/dataflow/python_template_launcher
 
+RUN apt-get install -y python3.9 python3-pip \
+    && ln -s $(which python3.9) /usr/local/bin/python
+
+
 ARG WORKDIR=/dataflow/template
 RUN mkdir -p ${WORKDIR}
 WORKDIR ${WORKDIR}
