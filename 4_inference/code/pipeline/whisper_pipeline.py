@@ -48,7 +48,6 @@ def run_pipeline(argv=None):
     parser.add_argument('--job_name', dest='job_name', required=True)
     parser.add_argument('--project', dest='project', required=True)
     parser.add_argument('--region', dest='region', required=True)
-    parser.add_argument()
 
     known_args, pipeline_args = parser.parse_known_args(argv)
     options = PipelineOptions(pipeline_args)
