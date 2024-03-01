@@ -1,7 +1,7 @@
 import argparse
 import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions
-from apache_beam.optoions.pipeline_options import GoogleCloudOptions
+from apache_beam.options.pipeline_options import GoogleCloudOptions
 from structlog import get_logger
 import subprocess
 import json
