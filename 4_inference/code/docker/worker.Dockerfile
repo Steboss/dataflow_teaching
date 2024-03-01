@@ -7,12 +7,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential \
         cmake \
         git \
-        python3.9 \
-        python3-pip \
-        python3.9-dev \
-        python3.9-distutils \
         libglib2.0-0 \
-    && ln -s /usr/bin/python3.9 /usr/bin/python \
+    && ln -s /usr/bin/python3.8 /usr/bin/python \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
