@@ -17,11 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 
-# Upgrade pip and install Apache Beam and other Python dependencies
-RUN pip install --upgrade pip \
-    && pip install apache-beam[gcp] \
-    # Add any other Python dependencies here
-    && pip install setuptools wheel
+
 
 
 # Clone the GGML repository and build the whisper binary
@@ -39,8 +35,11 @@ WORKDIR ${WORKDIR}
 
 # install python dependencies
 COPY requirements.txt ${WORKDIR}/requirements.txt
+RUN pip install apache-beam[gcp] \
+    # Download the requirements to speed up launching the Dataflow job.
+    && pip download --no-cache-dir --dest /tmp/dataflow-requirements-cache -r requirements.txt \
+    && pip download --no-cache-dir --dest /tmp/dataflow-requirements-cache .
 RUN pip install -r ${WORKDIR}/requirements.txt
-
 COPY pipeline ${WORKDIR}/pipeline
 COPY setup.py ${WORKDIR}/setup.py
 

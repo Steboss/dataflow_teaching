@@ -7,15 +7,15 @@ COPY --from=template_launcher /opt/google/dataflow/python_template_launcher /opt
 ARG WORKDIR=/code_pipeline/
 RUN mkdir -p ${WORKDIR}
 WORKDIR ${WORKDIR}
-RUN apt-get update \
-    && apt-get install -y libffi-dev git \
-    && rm -rf /var/lib/apt/lists/* \
-    && pip install --upgrade pip \
-    && pip install apache-beam[gcp] \
-    && pip install -r requirements.txt \
-    # Download the requirements to speed up launching the Dataflow job.
-    && pip download --no-cache-dir --dest /tmp/dataflow-requirements-cache -r requirements.txt \
-    && pip download --no-cache-dir --dest /tmp/dataflow-requirements-cache .
+# RUN apt-get update \
+#     && apt-get install -y libffi-dev git \
+#     && rm -rf /var/lib/apt/lists/* \
+#     && pip install --upgrade pip \
+#     && pip install apache-beam[gcp] \
+#     && pip install -r requirements.txt \
+#     # Download the requirements to speed up launching the Dataflow job.
+#     && pip download --no-cache-dir --dest /tmp/dataflow-requirements-cache -r requirements.txt \
+#     && pip download --no-cache-dir --dest /tmp/dataflow-requirements-cache .
 
 
 # flex environment variables
