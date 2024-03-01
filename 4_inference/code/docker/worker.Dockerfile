@@ -13,7 +13,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         python3.9-distutils \
         libglib2.0-0 \
     && ln -s /usr/bin/python3.9 /usr/bin/python \
-    && ln -s /usr/bin/pip3 /usr/bin/pip \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
