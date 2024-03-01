@@ -3,16 +3,20 @@ FROM europe-west2-docker.pkg.dev/long-axle-412512/whisper-pipeline/whisper_pipel
 
 COPY --from=template_launcher /opt/google/dataflow/python_template_launcher /opt/google/dataflow/python_template_launcher
 
-# Upgrade pip and install Apache Beam and other Python dependencies
-RUN pip install --upgrade pip \
-    && pip install apache-beam[gcp] \
-    # Add any other Python dependencies here
-    && pip install setuptools wheel
 
 ARG WORKDIR=/code_pipeline/
 RUN mkdir -p ${WORKDIR}
 WORKDIR ${WORKDIR}
-RUN pip install -r ${WORKDIR}/requirements.txt
+RUN apt-get update \
+    && apt-get install -y libffi-dev git \
+    && rm -rf /var/lib/apt/lists/* \
+    && pip install --upgrade pip \
+    && pip install apache-beam[gcp] \
+    && pip install -r requirements.txt \
+    # Download the requirements to speed up launching the Dataflow job.
+    && pip download --no-cache-dir --dest /tmp/dataflow-requirements-cache -r requirements.txt \
+    && pip download --no-cache-dir --dest /tmp/dataflow-requirements-cache .
+
 
 # flex environment variables
 ENV FLEX_TEMPLATE_PYTHON_PY_FILE="${WORKDIR}/pipeline/whisper_pipeline.py"

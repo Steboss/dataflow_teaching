@@ -43,6 +43,5 @@ RUN pip install -r ${WORKDIR}/requirements.txt
 
 COPY pipeline ${WORKDIR}/pipeline
 COPY setup.py ${WORKDIR}/setup.py
-ENV PYTHONPATH ${WORKDIR}
 
 ENTRYPOINT [ "/opt/apache/beam/boot" ]
