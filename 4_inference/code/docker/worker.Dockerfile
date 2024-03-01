@@ -13,13 +13,7 @@ RUN apt-get update \
 ARG WORKDIR=/code_pipeline/
 RUN mkdir -p ${WORKDIR}
 WORKDIR ${WORKDIR}
-# download ggml and install whisper
-RUN git clone https://github.com/ggerganov/ggml.git \
-    && cd ggml \
-    && mkdir build && cd build \
-    && cmake .. \
-    && make -j4 whisper
-# MAKE SURE WHISPER IS PRESENT!
+
 # install python dependencies
 COPY requirements.txt ${WORKDIR}/requirements.txt
 RUN pip install -r ${WORKDIR}/requirements.txt

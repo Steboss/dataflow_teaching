@@ -6,6 +6,13 @@ COPY --from=template_launcher /opt/google/dataflow/python_template_launcher /opt
 RUN apt-get install -y python3.9 python3-pip \
     && ln -s $(which python3.9) /usr/local/bin/python
 
+RUN apt-get -y install git cmake python3-pip
+# download ggml and install whisper
+RUN git clone https://github.com/ggerganov/ggml.git \
+    && cd ggml \
+    && mkdir build && cd build \
+    && cmake .. \
+    && make -j4 whisper
 
 ARG WORKDIR=/dataflow/template
 RUN mkdir -p ${WORKDIR}
