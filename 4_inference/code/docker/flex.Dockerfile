@@ -6,7 +6,7 @@ COPY --from=template_launcher /opt/google/dataflow/python_template_launcher /opt
 ARG WORKDIR=/dataflow/template
 RUN mkdir -p ${WORKDIR}
 WORKDIR ${WORKDIR}
-RUN mv /pipeline/* ${WORKDIR}
+RUN mv /code_pipeline/* ${WORKDIR}
 ENV PATH="/dataflow/template/ggml/build/bin:${PATH}"
 # flex environment variables
 ENV FLEX_TEMPLATE_PYTHON_PY_FILE="${WORKDIR}/whisper_pipeline.py"

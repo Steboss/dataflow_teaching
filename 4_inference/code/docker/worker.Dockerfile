@@ -13,8 +13,8 @@ RUN apt-get update \
 
 # copy model artifact
 # this was /pipeline
-ARG WORKDIR=/pipeline/
-
+ARG WORKDIR=/code_pipeline/
+RUN mkdir -p ${WORKDIR}
 # download ggml and install whisper
 RUN git clone https://github.com/ggerganov/ggml.git \
     && cd ggml \
@@ -23,12 +23,12 @@ RUN git clone https://github.com/ggerganov/ggml.git \
     && make -j4 whisper
 
 # install python dependencies
-COPY requirements.txt requirements.txt
-RUN pip install -r requirements.txt
+COPY requirements.txt /code_pipeline/requirements.txt
+RUN pip install -r /code_pipeline/requirements.txt
 
-COPY pipeline pipeline
-COPY requirements.txt /pipeline/requirements.txt
-COPY setup.py /pipeline/setup.py
+COPY pipeline /code_pipeline/pipeline
+COPY requirements.txt /code_pipeline/requirements.txt
+COPY setup.py /code_pipeline/setup.py
 ENV PYTHONPATH ${WORKDIR}
 
 ENTRYPOINT [ "/opt/apache/beam/boot" ]
