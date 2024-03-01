@@ -1,5 +1,7 @@
 FROM nvcr.io/nvidia/cuda:11.3.1-cudnn8-runtime-ubuntu20.04
 
+ENV DEBIAN_FRONTEND=noninteractive
+
 # Install system dependencies required for Python, Beam, and GGML compilation
 RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential \
