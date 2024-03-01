@@ -16,10 +16,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-
-
-
-
 # Clone the GGML repository and build the whisper binary
 RUN git clone https://github.com/ggerganov/ggml.git /ggml \
     && cd /ggml \
@@ -39,6 +35,7 @@ COPY pipeline ${WORKDIR}/pipeline
 COPY setup.py ${WORKDIR}/setup.py
 
 RUN pip install apache-beam[gcp] \
+    && pip install -r requirements.txt \
     # Download the requirements to speed up launching the Dataflow job.
     && pip download --no-cache-dir --dest /tmp/dataflow-requirements-cache -r requirements.txt \
     && pip download --no-cache-dir --dest /tmp/dataflow-requirements-cache .
