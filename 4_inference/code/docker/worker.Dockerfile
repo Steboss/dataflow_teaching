@@ -35,12 +35,13 @@ WORKDIR ${WORKDIR}
 
 # install python dependencies
 COPY requirements.txt ${WORKDIR}/requirements.txt
+COPY pipeline ${WORKDIR}/pipeline
+COPY setup.py ${WORKDIR}/setup.py
+
 RUN pip install apache-beam[gcp] \
     # Download the requirements to speed up launching the Dataflow job.
     && pip download --no-cache-dir --dest /tmp/dataflow-requirements-cache -r requirements.txt \
     && pip download --no-cache-dir --dest /tmp/dataflow-requirements-cache .
-RUN pip install -r ${WORKDIR}/requirements.txt
-COPY pipeline ${WORKDIR}/pipeline
-COPY setup.py ${WORKDIR}/setup.py
+
 
 ENTRYPOINT [ "/opt/apache/beam/boot" ]
