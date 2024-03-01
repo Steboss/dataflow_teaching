@@ -50,9 +50,7 @@ def run_pipeline(argv=None):
     parser.add_argument('--region', dest='region', required=True)
 
     known_args, pipeline_args = parser.parse_known_args(argv)
-    options = PipelineOptions(pipeline_args)
-    options.view_as(PipelineOptions).streaming = True
-    options.view_as(PipelineOptions).save_main_session = True
+    options = PipelineOptions(pipeline_args, streaming=True, save_main_session=True)
     google_cloud_options = options.view_as(GoogleCloudOptions)
     google_cloud_options.project = known_args.project
     google_cloud_options.job_name = known_args.job_name
