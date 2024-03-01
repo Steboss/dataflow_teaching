@@ -1,14 +1,36 @@
 FROM nvcr.io/nvidia/cuda:11.3.1-cudnn8-runtime-ubuntu20.04
 
-# Set the entrypoint to Apache Beam SDK worker launcher.
-COPY --from=apache/beam_python3.9_sdk:2.46.0 /opt/apache/beam /opt/apache/beam
+# Install system dependencies required for Python, Beam, and GGML compilation
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential \
+        cmake \
+        git \
+        python3.9 \
+        python3-pip \
+        python3.9-dev \
+        python3.9-distutils \
+        libglib2.0-0 \
+    && ln -s /usr/bin/python3.9 /usr/bin/python \
+    && ln -s /usr/bin/pip3 /usr/bin/pip \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 
-ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update \
-    && apt-get dist-upgrade -y \
-    && apt-get install -y --no-install-recommends --fix-missing build-essential libncurses5-dev libgdbm-dev libnss3-dev libreadline-dev libffi-dev libsqlite3-dev libbz2-dev zlib1g-dev libssl-dev liblzma-dev default-libmysqlclient-dev g++ curl \
-    && apt-get -y install git cmake python3-pip
+# Upgrade pip and install Apache Beam and other Python dependencies
+RUN pip install --upgrade pip \
+    && pip install apache-beam[gcp] \
+    # Add any other Python dependencies here
+    && pip install setuptools wheel
+
+
+# Clone the GGML repository and build the whisper binary
+RUN git clone https://github.com/ggerganov/ggml.git /ggml \
+    && cd /ggml \
+    && mkdir build && cd build \
+    && cmake .. \
+    && make -j4 whisper
+# Ensure the whisper binary is in the PATH
+ENV PATH="/ggml/build/bin:${PATH}"
 
 ARG WORKDIR=/code_pipeline/
 RUN mkdir -p ${WORKDIR}
