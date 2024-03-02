@@ -22,7 +22,7 @@ class GGMLModelInferenceFn(beam.DoFn):
             with element.open() as f:
                 temp_audio_file.write(f.read())
         #input_file = element #'gs://input_files_my_pipeline/sampled_16khz.wav' # sysargv[1]
-        output_file = 'gs://input_files_my_pipeline/test_output.json' # sysargv[2]
+        output_file = 'test_output.json' # sysargv[2]
         language = 'italian'
 
         # Construct the whisper command
