@@ -2,7 +2,7 @@ import argparse
 import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions
 from apache_beam.io.fileio import MatchFiles, ReadMatches
-
+import tempfile
 from structlog import get_logger
 import subprocess
 import json
@@ -17,7 +17,11 @@ class GGMLModelInferenceFn(beam.DoFn):
     #     """ Set up the model binary path."""
     #     self.model_binary_path = 'gs://ggml_models/ggml-model.bin'
     def process(self, element):
-        input_file = element #'gs://input_files_my_pipeline/sampled_16khz.wav' # sysargv[1]
+        with tempfile.NamedTemporaryFile(delete=False) as temp_audio_file:
+            # Read the content from the ReadableFile and write it to the temporary file
+            with element.open() as f:
+                temp_audio_file.write(f.read())
+        #input_file = element #'gs://input_files_my_pipeline/sampled_16khz.wav' # sysargv[1]
         output_file = 'gs://input_files_my_pipeline/test_output.json' # sysargv[2]
         language = 'italian'
 
@@ -25,7 +29,7 @@ class GGMLModelInferenceFn(beam.DoFn):
         cmd = [
             'whisper',
             '-m', 'gs://ggml_models/ggml-model.bin',
-            '-f', input_file,
+            '-f', temp_audio_file.name,
             '-oj', output_file,
             '-l', language
         ]
