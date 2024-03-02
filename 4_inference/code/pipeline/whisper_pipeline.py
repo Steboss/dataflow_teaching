@@ -7,6 +7,8 @@ from structlog import get_logger
 import subprocess
 import json
 from datetime import datetime
+from google.cloud import storage
+
 
 logger = get_logger()
 
@@ -16,6 +18,25 @@ class GGMLModelInferenceFn(beam.DoFn):
     # def setup(self):
     #     """ Set up the model binary path."""
     #     self.model_binary_path = 'gs://ggml_models/ggml-model.bin'
+    def start_bundle(self):
+        # Initialize Google Cloud Storage client
+        self.client = storage.Client()
+
+        # Name of the bucket and object (model file)
+        bucket_name = 'ggml_models'
+        model_blob_name = 'ggml-model.bin' # whisper model
+
+        # Create a temporary file to store the downloaded model
+        self.model_temp_file = tempfile.NamedTemporaryFile(delete=False)
+
+        # Download the model file from GCS to the temporary file
+        bucket = self.client.get_bucket(bucket_name)
+        blob = bucket.blob(model_blob_name)
+        blob.download_to_filename(self.model_temp_file.name)
+
+        # Now self.model_temp_file.name contains the path to the downloaded model file
+        # You can use this path in the process method for inference
+
     def process(self, element):
         with tempfile.NamedTemporaryFile(delete=False) as temp_audio_file:
             # Read the content from the ReadableFile and write it to the temporary file
@@ -28,10 +49,10 @@ class GGMLModelInferenceFn(beam.DoFn):
         # Construct the whisper command
         cmd = [
             'whisper',
-            '-m', 'gs://ggml_models/ggml-model.bin',
+            '-m', self.model_temp_file.name,
             '-f', temp_audio_file.name,
-            '-oj', output_file,
-            '-l', language
+            '-l', language,
+            '-oj', output_file
         ]
 
         # Execute whisper command
@@ -42,6 +63,11 @@ class GGMLModelInferenceFn(beam.DoFn):
         with open(output_file, 'r') as f:
             output_data = json.load(f)
             yield output_data
+
+    def finish_bundle(self):
+        # Clean up the temporary file
+        os.remove(self.model_temp_file.name)
+
 
 
 def run_pipeline(argv=None):
