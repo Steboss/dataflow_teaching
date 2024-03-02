@@ -56,8 +56,7 @@ def run_pipeline(argv=None):
                               job_name=f"{known_args.job_name}-{datetime.now().strftime('%Y%m%d%H%M%S')}",
                               project=known_args.project,
                               region=known_args.region,
-                              flags=["--experiment=worker_accelerator=type:nvidia-tesla-p4;count:1;"\
-                                       "install-nvidia-driver",],
+                              flags=["--experiment=worker_accelerator=type:nvidia-tesla-p4;count:1;install-nvidia-driver"],
                               sdk_container_image='europe-west2-docker.pkg.dev/long-axle-412512/whisper-pipeline/whisper_pipeline_flex:latest',
                               )
 
