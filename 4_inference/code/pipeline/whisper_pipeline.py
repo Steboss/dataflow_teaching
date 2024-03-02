@@ -50,17 +50,16 @@ def run_pipeline(argv=None):
     parser.add_argument('--region', dest='region', required=True)
 
     known_args, pipeline_args = parser.parse_known_args(argv)
-    options = PipelineOptions(pipeline_args,
-                              streaming=True,
-                              save_main_session=True,
-                              job_name=f"{known_args.job_name}-{datetime.now().strftime('%Y%m%d%H%M%S')}",
-                              project=known_args.project,
-                              region=known_args.region,
-                              sdk_container_image='europe-west2-docker.pkg.dev/long-axle-412512/whisper-pipeline/whisper_pipeline_flex:latest',
-                              )
+    dataflow_options = {"streaming": True,
+                        "save_main_session": True,
+                        "job_name": f"{known_args.job_name}-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+                        "project": known_args.project,
+                        "region": known_args.region,
+                        "sdk_container_image": 'europe-west2-docker.pkg.dev/long-axle-412512/whisper-pipeline/whisper_pipeline_flex:latest',
+                        }
     flags = ["--experiment=worker_accelerator=type:nvidia-tesla-p4;count:1;install-nvidia-driver"],
-
-    with beam.Pipeline(flags=flags, options=options) as p:
+    options = PipelineOptions(flags=flags, **dataflow_options)
+    with beam.Pipeline(options=options) as p:
         (p
          | 'Model Inference' >> beam.ParDo(GGMLModelInferenceFn())
          )
