@@ -1,10 +1,10 @@
 import argparse
 import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions
-from apache_beam.options.pipeline_options import GoogleCloudOptions
 from structlog import get_logger
 import subprocess
 import json
+from datetime import datetime
 
 logger = get_logger()
 
@@ -50,20 +50,16 @@ def run_pipeline(argv=None):
     parser.add_argument('--region', dest='region', required=True)
 
     known_args, pipeline_args = parser.parse_known_args(argv)
-    options = PipelineOptions(pipeline_args, streaming=True, save_main_session=True)
-    google_cloud_options = options.view_as(GoogleCloudOptions)
-    google_cloud_options.project = known_args.project
-    google_cloud_options.job_name = known_args.job_name
-    google_cloud_options.region = known_args.region
-    #google_cloud_options.disk_size_gb = 50
-
-    # Additional experiments for GPU configuration - to be used when launching the job
-    additional_experiments = [
-        'worker_accelerator=type:nvidia-tesla-t4;count=1;install-nvidia-driver',
-        'worker_harness_container_image=europe-west2-docker.pkg.dev/long-axle-412512/whisper-pipeline/whisper_pipeline_flex:latest'
-        # Include any other experiments or configurations here
-    ]
-    options.view_as(GoogleCloudOptions).additional_experiments = additional_experiments
+    options = PipelineOptions(pipeline_args,
+                              streaming=True,
+                              save_main_session=True,
+                              job_name=f"{known_args.job_name}-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+                              project=known_args.project,
+                              region=known_args.region,
+                              flags=["--experiment=worker_accelerator=type:nvidia-tesla-p4;count:1;"\
+                                       "install-nvidia-driver",],
+                              sdk_container_image='europe-west2-docker.pkg.dev/long-axle-412512/whisper-pipeline/whisper_pipeline_flex:latest',
+                              )
 
     with beam.Pipeline(options=options) as p:
         (p
