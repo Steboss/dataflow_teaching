@@ -1,6 +1,8 @@
 import argparse
 import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions
+from apache_beam.io.fileio import MatchFiles, ReadMatches
+
 from structlog import get_logger
 import subprocess
 import json
@@ -11,19 +13,18 @@ logger = get_logger()
 
 class GGMLModelInferenceFn(beam.DoFn):
     """ Apache Beam DoFn for invoking the GGML model inference using the whisper command-line tool."""
-    def setup(self):
-        """ Set up the model binary path."""
-        self.model_binary_path = 'gs://ggml_models/ggml-model.bin'
-
+    # def setup(self):
+    #     """ Set up the model binary path."""
+    #     self.model_binary_path = 'gs://ggml_models/ggml-model.bin'
     def process(self, element):
-        input_file = 'gs://input_files_my_pipeline/sampled_16khz.wav' # sysargv[1]
+        input_file = element #'gs://input_files_my_pipeline/sampled_16khz.wav' # sysargv[1]
         output_file = 'gs://input_files_my_pipeline/test_output.json' # sysargv[2]
         language = 'italian'
 
         # Construct the whisper command
         cmd = [
             'whisper',
-            '-m', self.model_binary_path,
+            '-m', 'gs://ggml_models/ggml-model.bin',
             '-f', input_file,
             '-oj', output_file,
             '-l', language
@@ -43,7 +44,7 @@ def run_pipeline(argv=None):
     parser = argparse.ArgumentParser()
     # input files, we can read from a bucket extracting all the files
     # now just test with 16khz
-    # parser.add_argument('--input-bucket-path', dest='input_files', required=True)
+    #parser.add_argument('--input-wav-file', dest='input_file', required=True)
     # parser.add_argument('--output-bucket-path', dest='output_files', required=True)
     parser.add_argument('--job_name', dest='job_name', required=True)
     parser.add_argument('--project', dest='project', required=True)
@@ -59,10 +60,13 @@ def run_pipeline(argv=None):
                         }
     flags = ["--experiment=worker_accelerator=type:nvidia-tesla-p4;count:1;install-nvidia-driver"],
     options = PipelineOptions(flags=flags, **dataflow_options)
+
     with beam.Pipeline(options=options) as p:
-        (p
-         | 'Model Inference' >> beam.ParDo(GGMLModelInferenceFn())
-         )
+        result = (p
+                  | 'Match Audio Files' >> MatchFiles('gs://input_files_my_pipeline/sampled_16khz.wav')
+                  | 'Read Matches' >> ReadMatches()
+                  | 'Model Inference' >> beam.ParDo(GGMLModelInferenceFn())
+                  )
 
 
 if __name__ == '__main__':
