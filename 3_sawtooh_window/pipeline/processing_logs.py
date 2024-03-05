@@ -4,6 +4,7 @@ from apache_beam.options.pipeline_options import PipelineOptions
 from apache_beam.typehints import Tuple, Any, KV
 from apache_beam import window
 from structlog import get_logger
+from datetime import datetime
 import json
 
 logger = get_logger()
@@ -61,7 +62,7 @@ def run_pipeline(argv=None):
             p
             | 'Read from Pub/Sub' >> beam.io.ReadFromPubSub(subscription=known_args.input_subscription)
             | 'Parse JSON' >> beam.Map(lambda x: json.loads(x))
-            | 'Timestamps' >> beam.Map(lambda x: beam.window.TimestampedValue(x, datetime.strptime(x['timestamp'], "%Y-%m-%d %H:%M:%S").timestamp()))
+            | 'Timestamps' >> beam.Map(lambda x: beam.window.TimestampedValue(x, datetime.strptime(x['timestamp'], "%Y%m%d%H%M%S").timestamp()))
             | 'Assign elements within a sawtooth window' >> beam.ParDo(AssignToSawtoothWindow())
             | 'Print' >> beam.Map(print)
             # Ensure you apply windowing here. If AssignToSawtoothWindow() doesn't directly apply windowing, you'll need to adjust.

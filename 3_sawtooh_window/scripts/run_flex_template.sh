@@ -2,7 +2,7 @@
 
 PIPELINE_NAME="window-pipeline"
 PROJECT="long-axle-412512"
-REGION="europe-west1"
+REGION="us-central1"
 DATAFLOW_GCS_LOCATION="gs://flex_templates_my_pipeline/sawtooh_window_template.json"
 NUM_MAX_WORKERS=2
 
