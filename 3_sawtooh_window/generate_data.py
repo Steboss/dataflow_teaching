@@ -9,8 +9,8 @@ from structlog import get_logger
 
 logger = get_logger()
 project_id = "long-axle-412512"
-topic_id = "example-window-pipeline" # MODIFY THIS
-
+topic_id = "example-sawtooth-window" # MODIFY THIS
+# rojects/long-axle-412512/subscriptions/example-sawtooth-window-sub
 publisher = pubsub_v1.PublisherClient()
 topic_path = publisher.topic_path(project_id, topic_id)
 
