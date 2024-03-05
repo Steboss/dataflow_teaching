@@ -33,7 +33,7 @@ def generate_login_events(start_time, end_time, num_users=1000, num_scammers=10,
         while current_time < end_time:
             current_time += timedelta(hours=1/event_rate_per_hour)
             events.append({
-                'timestamp': current_time,
+                'timestamp': current_time.strftime("%Y%m%d%H%M%S"),
                 'user_id': user,
                 'event_type': 'success' if random.random() < 0.95 else 'fail',  # 95% success rate
                 'source_ip': random.choice(ipaddresses)
@@ -46,7 +46,7 @@ def generate_login_events(start_time, end_time, num_users=1000, num_scammers=10,
             # Scammers try more frequently
             current_time += timedelta(minutes=random.randint(1, 30))
             events.append({
-                'timestamp': current_time,
+                'timestamp': current_time.strftime("%Y%m%d%H%M%S"),
                 'user_id': scammer,
                 'event_type': 'fail',  # Scammers always fail
                 'source_ip': '10.0.0.1'
