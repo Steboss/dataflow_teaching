@@ -62,8 +62,8 @@ def publish_events():
         data = generate_login_events(start_time, end_time)
         for event in data:
             sender = random.uniform(0.1, 15) # generate a random number to send the event
-            logger.info(f"Publishing {event} to {topic_path}")
             message = json.dumps(event)
+            logger.info(f"Publishing {message} to {topic_path}")
             publisher.publish(topic_path, message.encode("utf-8"))
             time.sleep(sender)
 # # Example usage
