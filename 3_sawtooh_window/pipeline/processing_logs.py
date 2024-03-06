@@ -64,17 +64,16 @@ def run_pipeline(argv=None):
             | 'Parse JSON' >> beam.Map(lambda x: json.loads(x))
             | 'Timestamps' >> beam.Map(lambda x: beam.window.TimestampedValue(x, datetime.strptime(x['timestamp'], "%Y%m%d%H%M%S").timestamp()))
             | 'Assign elements within a sawtooth window' >> beam.ParDo(AssignToSawtoothWindow())
-            | 'Print' >> beam.Map(print)
             # Ensure you apply windowing here. If AssignToSawtoothWindow() doesn't directly apply windowing, you'll need to adjust.
         )
 
-        # failed_login_counts = (
-        #     windowed_elements
-        #     | 'Filter Failures' >> beam.Filter(lambda x: x['event_type'] == 'fail')
-        #     | 'Key By User and Window' >> beam.ParDo(key_by_user_window)
-        #     | 'Count Failures Per User Per Window' >> beam.CombinePerKey(sum)
-        #     | 'Print' >> beam.Map(print)
-        # )
+        failed_login_counts = (
+            windowed_elements
+            | 'Filter Failures' >> beam.Filter(lambda x: x['event_type'] == 'fail')
+            | 'Key By User and Window' >> beam.ParDo(key_by_user_window)
+            | 'Count Failures Per User Per Window' >> beam.CombinePerKey(sum)
+            | 'Print' >> beam.Map(print)
+        )
         result = p.run()
         result.wait_until_finish()
 
@@ -82,6 +81,12 @@ def run_pipeline(argv=None):
         # exmaple of output out of parse json
         #({'timestamp': '20240306133453', 'user_id': 'user_0', 'event_type': 'success', 'source_ip': '192.1.1.2'},
         #1709730326.152, (GlobalWindow,), PaneInfo(first: True, last: True, timing: UNKNOWN, index: 0, nonspeculative_index: 0))
+
+        # timestamps output
+        #({'timestamp': '20240306141824', 'user_id': 'user_4', 'event_type': 'success', 'source_ip': '192.1.4.2'}, 1709734704.0, (GlobalWindow,), PaneInfo(first: True, last: True, timing: UNKNOWN, index: 0, nonspeculative_index: 0))
+
+        # element to windo
+        #([1709734700.0, 1709734720.0), 1709734704.0, (GlobalWindow,), PaneInfo(first: True, last: True, timing: UNKNOWN, index: 0, nonspeculative_index: 0))
 
 
 if __name__ == '__main__':
