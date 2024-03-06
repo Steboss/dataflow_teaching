@@ -17,6 +17,7 @@ gcloud dataflow flex-template run ${PIPELINE_NAME} \
 --num-workers=1  \
 --temp-location=gs://mypipelines-dataflow-temp/ \
 --staging-location=gs://dataflow-staging-europe-west2-1028464732444/ \
+--additional-experiments=enable_data_sampling \
 --parameters job_name=sawtooth-window-pipeline \
 --parameters project=${PROJECT} \
 --parameters region=${REGION} \

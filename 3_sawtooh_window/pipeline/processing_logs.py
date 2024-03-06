@@ -62,8 +62,8 @@ def run_pipeline(argv=None):
             p
             | 'Read from Pub/Sub' >> beam.io.ReadFromPubSub(subscription=known_args.input_subscription)
             | 'Parse JSON' >> beam.Map(lambda x: json.loads(x))
-            # | 'Timestamps' >> beam.Map(lambda x: beam.window.TimestampedValue(x, datetime.strptime(x['timestamp'], "%Y%m%d%H%M%S").timestamp()))
-            # | 'Assign elements within a sawtooth window' >> beam.ParDo(AssignToSawtoothWindow())
+            | 'Timestamps' >> beam.Map(lambda x: beam.window.TimestampedValue(x, datetime.strptime(x['timestamp'], "%Y%m%d%H%M%S").timestamp()))
+            | 'Assign elements within a sawtooth window' >> beam.ParDo(AssignToSawtoothWindow())
             | 'Print' >> beam.Map(print)
             # Ensure you apply windowing here. If AssignToSawtoothWindow() doesn't directly apply windowing, you'll need to adjust.
         )
@@ -77,6 +77,11 @@ def run_pipeline(argv=None):
         # )
         result = p.run()
         result.wait_until_finish()
+
+
+        # exmaple of output out of parse json
+        #({'timestamp': '20240306133453', 'user_id': 'user_0', 'event_type': 'success', 'source_ip': '192.1.1.2'},
+        #1709730326.152, (GlobalWindow,), PaneInfo(first: True, last: True, timing: UNKNOWN, index: 0, nonspeculative_index: 0))
 
 
 if __name__ == '__main__':
