@@ -20,5 +20,5 @@ gcloud dataflow flex-template run ${PIPELINE_NAME} \
 --parameters job_name=sawtooth-window-pipeline \
 --parameters project=${PROJECT} \
 --parameters region=${REGION} \
---parameters input-subscription=projects/long-axle-412512/subscriptions/example-sawtooth-window-sub \
+--parameters input-subscription=projects/long-axle-412512/subscriptions/sawtooth-window  \
 --parameters output-topic=projects/long-axle-412512/topics/example-output-sawtooth-window
