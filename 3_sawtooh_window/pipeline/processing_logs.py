@@ -61,7 +61,7 @@ def run_pipeline(argv=None):
         windowed_elements = (
             p
             | 'Read from Pub/Sub' >> beam.io.ReadFromPubSub(subscription=known_args.input_subscription)
-            # | 'Parse JSON' >> beam.Map(lambda x: json.loads(x))
+            | 'Parse JSON' >> beam.Map(lambda x: json.loads(x))
             # | 'Timestamps' >> beam.Map(lambda x: beam.window.TimestampedValue(x, datetime.strptime(x['timestamp'], "%Y%m%d%H%M%S").timestamp()))
             # | 'Assign elements within a sawtooth window' >> beam.ParDo(AssignToSawtoothWindow())
             | 'Print' >> beam.Map(print)
