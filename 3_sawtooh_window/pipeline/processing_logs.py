@@ -75,6 +75,8 @@ def run_pipeline(argv=None):
         #     | 'Count Failures Per User Per Window' >> beam.CombinePerKey(sum)
         #     | 'Print' >> beam.Map(print)
         # )
+        result = p.run()
+        result.wait_until_finish()
 
 
 if __name__ == '__main__':
