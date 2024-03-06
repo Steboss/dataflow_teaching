@@ -1,7 +1,8 @@
 import argparse
 import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions
-from apache_beam.typehints import Tuple, Any, KV
+from apache_beam.transforms.userstate import BagStateSpec, CombiningValueStateSpec, ReadModifyWriteStateSpec
+
 from apache_beam import window
 from structlog import get_logger
 from datetime import datetime
@@ -11,6 +12,7 @@ logger = get_logger()
 
 
 class AssignToSawtoothWindow(beam.DoFn):
+    # this funciton is wrong we awant aggregated valus out of here
     def process(self, element, timestamp=beam.DoFn.TimestampParam):
         # Example sawtooth pattern: 10s, 20s, 30s windows, then reset
         window_sizes = [10, 20, 30]  # Window sizes in seconds
@@ -30,6 +32,20 @@ class AssignToSawtoothWindow(beam.DoFn):
         window_start = epoch_time - (epoch_time % current_window_size)
         window_end = window_start + current_window_size
         yield beam.window.IntervalWindow(window_start, window_end)
+
+
+class CountFailuresDoFn(beam.DoFn):
+    failed_login_spec = CombiningValueStateSpec('failed_logins', int, sum)
+
+    def process(self, element, window=beam.DoFn.WindowParam, failed_logins=beam.DoFn.StateParam(failed_login_spec)):
+        user_id, event_type = element['user_id'], element['event_type']
+
+        if event_type == 'fail':
+            failed_logins.add(1)
+
+        count = failed_logins.read()
+        if count:
+            yield (user_id, window, count)
 
 
 def key_by_user_window(element, window=beam.DoFn.WindowParam):
@@ -64,15 +80,8 @@ def run_pipeline(argv=None):
             | 'Parse JSON' >> beam.Map(lambda x: json.loads(x))
             | 'Timestamps' >> beam.Map(lambda x: beam.window.TimestampedValue(x, datetime.strptime(x['timestamp'], "%Y%m%d%H%M%S").timestamp()))
             | 'Assign elements within a sawtooth window' >> beam.ParDo(AssignToSawtoothWindow())
-            # Ensure you apply windowing here. If AssignToSawtoothWindow() doesn't directly apply windowing, you'll need to adjust.
-        )
-
-        failed_login_counts = (
-            windowed_elements
-            | 'Filter Failures' >> beam.Filter(lambda x: x['event_type'] == 'fail')
-            | 'Key By User and Window' >> beam.ParDo(key_by_user_window)
-            | 'Count Failures Per User Per Window' >> beam.CombinePerKey(sum)
-            | 'Print' >> beam.Map(print)
+            | 'Count Failures' >> beam.ParDo(CountFailuresDoFn())
+            | 'Print Results' >> beam.Map(print)
         )
         result = p.run()
         result.wait_until_finish()
