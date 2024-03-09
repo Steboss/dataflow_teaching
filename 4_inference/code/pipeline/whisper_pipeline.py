@@ -8,6 +8,7 @@ import subprocess
 import json
 from datetime import datetime
 from google.cloud import storage
+import os
 
 
 logger = get_logger()
@@ -52,8 +53,10 @@ class GGMLModelInferenceFn(beam.DoFn):
             '-m', self.model_temp_file.name,
             '-f', temp_audio_file.name,
             '-l', language,
-            '-oj', output_file
+            '-oj'
         ]
+        #➜ build/bin/whisper -m ../ggml_whisper/output_ggml_model/ggml-model.bin -f ../ggml_whisper/sampled_16khz.wav -l italian -nt -d 60000 -otxt
+        # the output is in the folder of the file
 
         # Execute whisper command
         subprocess.run(cmd, check=True)
@@ -69,7 +72,6 @@ class GGMLModelInferenceFn(beam.DoFn):
         os.remove(self.model_temp_file.name)
 
 
-
 def run_pipeline(argv=None):
     parser = argparse.ArgumentParser()
     # input files, we can read from a bucket extracting all the files
@@ -81,7 +83,7 @@ def run_pipeline(argv=None):
     parser.add_argument('--region', dest='region', required=True)
 
     known_args, pipeline_args = parser.parse_known_args(argv)
-    dataflow_options = {"streaming": True,
+    dataflow_options = {"streaming": False,
                         "save_main_session": True,
                         "job_name": f"{known_args.job_name}-{datetime.now().strftime('%Y%m%d%H%M%S')}",
                         "project": known_args.project,

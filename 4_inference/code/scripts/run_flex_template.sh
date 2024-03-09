@@ -17,6 +17,7 @@ gcloud dataflow flex-template run ${PIPELINE_NAME} \
 --num-workers=5  \
 --temp-location=gs://mypipelines-dataflow-temp/ \
 --staging-location=gs://dataflow-staging-europe-west2-1028464732444/ \
+--parameters experiments="worker_accelerator=type:nvidia-tesla-t4;count:1;install-nvidia-driver",experiments="use_runner_v2" \
 --parameters job_name=window-pipeline \
 --parameters project=${PROJECT} \
 --parameters region=${REGION}

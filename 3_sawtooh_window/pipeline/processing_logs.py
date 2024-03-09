@@ -78,14 +78,16 @@ def run_pipeline(argv=None):
             p
             | 'Read from Pub/Sub' >> beam.io.ReadFromPubSub(subscription=known_args.input_subscription)
             | 'Parse JSON' >> beam.Map(lambda x: json.loads(x))
-            | 'Timestamps' >> beam.Map(lambda x: beam.window.TimestampedValue(x, datetime.strptime(x['timestamp'], "%Y%m%d%H%M%S").timestamp()))
-            | 'Assign elements within a sawtooth window' >> beam.ParDo(AssignToSawtoothWindow())
+            | 'Timestamps' >> beam.Map(lambda x: beam.window.TimestampedValue(x, x['timestamp']))
+            | 'Fixed Window Test' >> beam.window.FixedWindows(60) # here we are gathering elements in a 60 seconds windows
             | 'Count Failures' >> beam.ParDo(CountFailuresDoFn())
             | 'Print Results' >> beam.Map(print)
         )
         result = p.run()
         result.wait_until_finish()
 
+
+        # what if we want to do more? --> pardo function to associate multiple windows
 
         # exmaple of output out of parse json
         #({'timestamp': '20240306133453', 'user_id': 'user_0', 'event_type': 'success', 'source_ip': '192.1.1.2'},
