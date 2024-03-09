@@ -17,6 +17,7 @@ class CountSuccessFailure(beam.CombineFn):
 
     def add_input(self, accumulator, input):
         # Assuming 'input' is an event dictionary with 'event_type' key
+        logger.info(f"input element {input}")
         if input.get('event_type') == 'success':
             accumulator['success'] += 1
         elif input.get('event_type') == 'fail':  # Use 'elif' and check for 'fail'
@@ -24,6 +25,7 @@ class CountSuccessFailure(beam.CombineFn):
         return accumulator
 
     def merge_accumulators(self, accumulators):
+        logger.info(f"Merge accumulators {accumulators}")
         merged = self.create_accumulator()
         for acc in accumulators:
             merged['success'] += acc['success']
@@ -31,6 +33,7 @@ class CountSuccessFailure(beam.CombineFn):
         return merged
 
     def extract_output(self, accumulator):
+        logger.info(f"extract output {accumulator}")
         return accumulator
 
 

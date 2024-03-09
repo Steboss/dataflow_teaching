@@ -22,7 +22,7 @@ ipaddresses.extend([str(ip) for ip in ipaddress.IPv4Network('192.1.4.0/28')])
 ipaddresses.extend([str(ip) for ip in ipaddress.IPv4Network('192.0.1.0/28')])
 
 
-def generate_login_events(start_time, end_time, num_users=1000, num_scammers=10, event_rate_per_hour=10):
+def generate_login_events(start_time, end_time, num_users=10000, num_scammers=1000, event_rate_per_hour=1000):
     users = [f'user_{i}' for i in range(num_users)]
     scammers = [f'scammer_{i}' for i in range(num_scammers)]
     events = []
@@ -61,7 +61,7 @@ def publish_events():
         end_time = start_time + timedelta(hours=1)
         data = generate_login_events(start_time, end_time)
         for event in data:
-            sender = random.uniform(0.1, 15) # generate a random number to send the event
+            sender = random.uniform(0.1, 0.9) # generate a random number to send the event
             message = json.dumps(event)
             logger.info(f"Publishing {message} to {topic_path}")
             publisher.publish(topic_path, message.encode("utf-8"))
