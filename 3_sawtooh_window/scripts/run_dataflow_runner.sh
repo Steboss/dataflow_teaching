@@ -1,21 +1,22 @@
 #!/bin/bash
 
-PIPELINE_NAME="window-pipeline"
+PIPELINE_NAME="sawtooth-window-pipeline"
 PROJECT="long-axle-412512"
 REGION="us-central1"
 NUM_MAX_WORKERS=2
-HOME="/home/sbosisio486/dataflow_teaching/2_window_features"
+HOME="/home/sbosisio486/dataflow_teaching/3_window_features"
 
 echo "Installing requirements"
 sudo pip uninstall --yes -r requirements.txt
 sudo pip install -r requirements.txt
 
 echo "MAKE SURE TO EXPORT YOU GOOGLE APPLICTION CREDENTIALS IF IN C.E"
+
 echo "Running pipeline"
 
 python pipeline/processing_logs.py \
-    --input-subscription projects/long-axle-412512/subscriptions/example-window-pipeline-sub \
-    --output-topic projects/long-axle-412512/topics/example-output-window-pipeline \
+    --input-subscription projects/long-axle-412512/subscriptions/sawtooth-window \
+    --output-topic projects/long-axle-412512/topics/example-output-sawtooth-window \
     --runner DataflowRunner \
     --region ${REGION} \
     --project ${PROJECT} \

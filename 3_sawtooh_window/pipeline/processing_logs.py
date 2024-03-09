@@ -10,30 +10,6 @@ import json
 
 logger = get_logger()
 
-
-class AssignToSawtoothWindow(beam.DoFn):
-    # this funciton is wrong we awant aggregated valus out of here
-    def process(self, element, timestamp=beam.DoFn.TimestampParam):
-        # Example sawtooth pattern: 10s, 20s, 30s windows, then reset
-        window_sizes = [10, 20, 30]  # Window sizes in seconds
-        epoch_time = int(timestamp)
-        cycle_period = sum(window_sizes)
-        cycle_position = epoch_time % cycle_period
-
-        # Determine the current window size based on cycle_position
-        accumulator = 0
-        for size in window_sizes:
-            accumulator += size
-            if cycle_position < accumulator:
-                current_window_size = size
-                break
-
-        # Calculate the window start and end times
-        window_start = epoch_time - (epoch_time % current_window_size)
-        window_end = window_start + current_window_size
-        yield beam.window.IntervalWindow(window_start, window_end)
-
-
 class CountFailuresDoFn(beam.DoFn):
     failed_login_spec = CombiningValueStateSpec('failed_logins', int, sum)
 
