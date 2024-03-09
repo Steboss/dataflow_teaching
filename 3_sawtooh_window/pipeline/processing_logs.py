@@ -16,17 +16,18 @@ class CountSuccessFailure(beam.CombineFn):
         return {'success': 0, 'fail': 0}
 
     def add_input(self, accumulator, input):
-        if input['event_type'] == 'success':
+        # Assuming 'input' is an event dictionary with 'event_type' key
+        if input.get('event_type') == 'success':
             accumulator['success'] += 1
-        else:
-            accumulator['fail'] += 1  # Changed 'failure' to 'fail' to match the accumulator key
+        elif input.get('event_type') == 'fail':  # Use 'elif' and check for 'fail'
+            accumulator['fail'] += 1
         return accumulator
 
     def merge_accumulators(self, accumulators):
         merged = self.create_accumulator()
         for acc in accumulators:
             merged['success'] += acc['success']
-            merged['fail'] += acc['fail']  # Changed 'failure' to 'fail' here as well
+            merged['fail'] += acc['fail']
         return merged
 
     def extract_output(self, accumulator):
@@ -66,7 +67,7 @@ def run_pipeline(argv=None):
             | 'Parse JSON' >> beam.Map(lambda x: json.loads(x))
             | 'Extract Timestamp' >> beam.Map(lambda x: beam.window.TimestampedValue(x, datetime.strptime(x['timestamp'], "%Y%m%d%H%M%S").timestamp()))
             | 'Fixed Window Test' >> beam.WindowInto(beam.window.FixedWindows(60)) # here we are gathering elements in a 60 seconds windows
-            | 'Key By User and Event' >> beam.Map(lambda x: (x['user_id'], {'event_type': x['event_type']}))
+            | 'Key By User ID' >> beam.Map(lambda x: (x['user_id'], x))  # Pass the entire event dictionary as value
             | 'Count Success/Failure' >> beam.CombinePerKey(CountSuccessFailure())
             | 'Print Results' >> beam.Map(print)
         )
