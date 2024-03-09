@@ -11,27 +11,13 @@ import json
 logger = get_logger()
 
 
-class CountSuccessFailure(beam.CombineFn):
-    def create_accumulator(self):
-        return {'success': 0, 'fail': 0}
-
-    def add_input(self, accumulator, input):
-        # Assuming 'input' is an event dictionary with 'event_type' key
-        if input.get('event_type') == 'success':
-            accumulator['success'] += 1
-        elif input.get('event_type') == 'fail':  # Use 'elif' and check for 'fail'
-            accumulator['fail'] += 1
-        return accumulator
-
-    def merge_accumulators(self, accumulators):
-        merged = self.create_accumulator()
-        for acc in accumulators:
-            merged['success'] += acc['success']
-            merged['fail'] += acc['fail']
-        return merged
-
-    def extract_output(self, accumulator):
-        return accumulator
+class SumSuccessFailure(beam.DoFn):
+    def process(self, element):
+        # element[0] is the user_id, element[1] is an iterable of events
+        user_id, events = element
+        success_count = sum(1 for event in events if event['event_type'] == 'success')
+        failure_count = sum(1 for event in events if event['event_type'] == 'fail')
+        yield user_id, {'success': success_count, 'fail': failure_count}
 
 
 
@@ -68,10 +54,8 @@ def run_pipeline(argv=None):
             | 'Extract Timestamp' >> beam.Map(lambda x: beam.window.TimestampedValue(x, datetime.strptime(x['timestamp'], "%Y%m%d%H%M%S").timestamp()))
             | 'Fixed Window Test' >> beam.WindowInto(beam.window.FixedWindows(60)) # here we are gathering elements in a 60 seconds windows
             | 'Key By User ID' >> beam.Map(lambda x: (x['user_id'], x))  # Pass the entire event dictionary as value
-            | 'Count Success/Failure' >> beam.CombinePerKey(CountSuccessFailure())
-            | 'Format Results' >> beam.Map(lambda kv: f'{kv[0]}: Success: {kv[1]["success"]}, Fail: {kv[1]["fail"]}')
-            | 'Write Results' >> beam.io.WriteToText('gs://input_files_my_pipeline/sawtooth-experiments')
-
+            | 'Group By User ID' >> beam.GroupByKey()
+            | 'Sum Success/Failure' >> beam.ParDo(SumSuccessFailure())
         )
 
         # | 'Extract Timestamp' >> beam.Map(lambda x: beam.window.TimestampedValue(x, datetime.strptime(x['timestamp'], "%Y%m%d%H%M%S").timestamp()))
