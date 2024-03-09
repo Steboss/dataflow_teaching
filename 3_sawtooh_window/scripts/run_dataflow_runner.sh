@@ -24,4 +24,5 @@ python pipeline/processing_logs.py \
     --staging_location gs://dataflow-staging-europe-west2-1028464732444/ \
     --job_name ${PIPELINE_NAME} \
     --requirements_file requirements.txt \
-    --maxNumWorkers ${NUM_MAX_WORKERS}
+    --maxNumWorkers ${NUM_MAX_WORKERS} \
+    --additional-experiments=enable_data_sampling
