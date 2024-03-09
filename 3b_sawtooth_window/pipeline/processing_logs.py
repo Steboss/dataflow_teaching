@@ -1,9 +1,6 @@
 import argparse
 import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions
-from apache_beam.transforms.userstate import BagStateSpec, CombiningValueStateSpec, ReadModifyWriteStateSpec
-
-from apache_beam import window
 from structlog import get_logger
 from datetime import datetime
 import json
@@ -20,6 +17,7 @@ class DetectAnomalies(beam.DoFn):
         if failure_count > 5:  # Threshold for anomaly
             yield user_id, {'window': window, 'anomaly': True, 'failures': failure_count}
 
+
 # Moving Average Calculation (for 60s sliding window)
 class CalculateMovingAverage(beam.DoFn):
     def process(self, element, window=beam.DoFn.WindowParam):
@@ -28,12 +26,14 @@ class CalculateMovingAverage(beam.DoFn):
         average = total_successes / len(events) if events else 0
         yield user_id, {'window': window, 'moving_average': average}
 
+
 # Total Sum Aggregation (for 180s sliding window)
 class CalculateTotalSum(beam.DoFn):
     def process(self, element, window=beam.DoFn.WindowParam):
         user_id, events = element
-        total_events = len(events)
-        yield user_id, {'window': window, 'total_events': total_events}
+        success_count = sum(1 for event in events if event['event_type'] == 'success')
+        failure_count = sum(1 for event in events if event['event_type'] == 'fail')
+        yield user_id, {'window': window, 'success': success_count, 'fail': failure_count}
 
 
 
@@ -103,8 +103,6 @@ def run_pipeline(argv=None):
             | 'Format for Output' >> beam.Map(lambda x: json.dumps(x).encode('utf-8'))
             | 'Write to PubSub' >> beam.io.WriteToPubSub(topic=known_args.output_topic)
         )
-
-
 
         result = p.run()
         result.wait_until_finish()

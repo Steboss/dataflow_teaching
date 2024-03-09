@@ -2,6 +2,15 @@ import argparse
 import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions
 from apache_beam.io.fileio import MatchFiles, ReadMatches
+from apache_beam.ml.inference.base import RunInference
+from apache_beam.ml.inference.base import ModelHandler
+from apache_beam.ml.inference.base import PredictionResult
+from spacy import Language
+from typing import Any
+from typing import Dict
+from typing import Iterable
+from typing import Optional
+from typing import Sequence
 import tempfile
 from structlog import get_logger
 import subprocess
@@ -14,6 +23,54 @@ import os
 logger = get_logger()
 
 # USE A CUSTOM HANDLER FOR THIS FUNCTION
+class SpacyModelHandler(ModelHandler[str,
+                                     PredictionResult,
+                                     Language]):
+    def __init__(
+        self,
+        model_name: str = "en_core_web_sm",
+    ):
+        """ Implementation of the ModelHandler interface for spaCy using text as input.
+
+        Example Usage::
+
+          pcoll | RunInference(SpacyModelHandler())
+
+        Args:
+          model_name: The spaCy model name. Default is en_core_web_sm.
+        """
+        self._model_name = model_name
+        self._env_vars = {}
+
+    def load_model(self) -> Language:
+        """Loads and initializes a model for processing."""
+        return spacy.load(self._model_name)
+
+    def run_inference(
+        self,
+        batch: Sequence[str],
+        model: Language,
+        inference_args: Optional[Dict[str, Any]] = None
+    ) -> Iterable[PredictionResult]:
+        """Runs inferences on a batch of text strings.
+
+        Args:
+          batch: A sequence of examples as text strings.
+          model: A spaCy language model
+          inference_args: Any additional arguments for an inference.
+
+        Returns:
+          An Iterable of type PredictionResult.
+        """
+        # Loop each text string, and use a tuple to store the inference results.
+        predictions = []
+        for one_text in batch:
+            doc = model(one_text)
+            predictions.append(
+                [(ent.text, ent.start_char, ent.end_char, ent.label_) for ent in doc.ents])
+        return [PredictionResult(x, y) for x, y in zip(batch, predictions)]
+
+
 class GGMLModelInferenceFn(beam.DoFn):
     """ Apache Beam DoFn for invoking the GGML model inference using the whisper command-line tool."""
     # def setup(self):
