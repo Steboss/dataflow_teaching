@@ -10,18 +10,27 @@ import json
 
 logger = get_logger()
 
-class CountFailuresDoFn(beam.DoFn):
-    failed_login_spec = CombiningValueStateSpec('failed_logins', int, sum)
 
-    def process(self, element, window=beam.DoFn.WindowParam, failed_logins=beam.DoFn.StateParam(failed_login_spec)):
-        user_id, event_type = element['user_id'], element['event_type']
+class CountSuccessFailure(beam.CombineFn):
+    def create_accumulator(self):
+        return {'success': 0, 'failure': 0}
 
-        if event_type == 'fail':
-            failed_logins.add(1)
+    def add_input(self, accumulator, input):
+        if input['event_type'] == 'success':
+            accumulator['success'] += 1
+        else:
+            accumulator['failure'] += 1
+        return accumulator
 
-        count = failed_logins.read()
-        if count:
-            yield (user_id, window, count)
+    def merge_accumulators(self, accumulators):
+        merged = self.create_accumulator()
+        for acc in accumulators:
+            merged['success'] += acc['success']
+            merged['failure'] += acc['failure']
+        return merged
+
+    def extract_output(self, accumulator):
+        return accumulator
 
 
 def key_by_user_window(element, window=beam.DoFn.WindowParam):
@@ -56,9 +65,14 @@ def run_pipeline(argv=None):
             | 'Parse JSON' >> beam.Map(lambda x: json.loads(x))
             | 'Timestamps' >> beam.Map(lambda x: beam.window.TimestampedValue(x, x['timestamp']))
             | 'Fixed Window Test' >> beam.window.FixedWindows(60) # here we are gathering elements in a 60 seconds windows
-            | 'Count Failures' >> beam.ParDo(CountFailuresDoFn())
+            | 'Key By User ID' >> beam.Map(lambda x: (x['user_id'], x))
+            | 'Count Success/Failure' >> beam.CombinePerKey(CountSuccessFailure())
             | 'Print Results' >> beam.Map(print)
         )
+
+        # | 'Extract Timestamp' >> beam.Map(lambda x: beam.window.TimestampedValue(x, datetime.strptime(x['timestamp'], "%Y%m%d%H%M%S").timestamp()))
+
+
         result = p.run()
         result.wait_until_finish()
 
