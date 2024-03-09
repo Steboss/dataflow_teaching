@@ -19,18 +19,19 @@ class CountSuccessFailure(beam.CombineFn):
         if input['event_type'] == 'success':
             accumulator['success'] += 1
         else:
-            accumulator['failure'] += 1
+            accumulator['fail'] += 1  # Changed 'failure' to 'fail' to match the accumulator key
         return accumulator
 
     def merge_accumulators(self, accumulators):
         merged = self.create_accumulator()
         for acc in accumulators:
             merged['success'] += acc['success']
-            merged['failure'] += acc['failure']
+            merged['fail'] += acc['fail']  # Changed 'failure' to 'fail' here as well
         return merged
 
     def extract_output(self, accumulator):
         return accumulator
+
 
 
 def key_by_user_window(element, window=beam.DoFn.WindowParam):
