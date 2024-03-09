@@ -17,7 +17,6 @@ class CountSuccessFailure(beam.CombineFn):
 
     def add_input(self, accumulator, input):
         # Assuming 'input' is an event dictionary with 'event_type' key
-        logger.info(f"input element {input}")
         if input.get('event_type') == 'success':
             accumulator['success'] += 1
         elif input.get('event_type') == 'fail':  # Use 'elif' and check for 'fail'
@@ -25,7 +24,6 @@ class CountSuccessFailure(beam.CombineFn):
         return accumulator
 
     def merge_accumulators(self, accumulators):
-        logger.info(f"Merge accumulators {accumulators}")
         merged = self.create_accumulator()
         for acc in accumulators:
             merged['success'] += acc['success']
@@ -33,7 +31,6 @@ class CountSuccessFailure(beam.CombineFn):
         return merged
 
     def extract_output(self, accumulator):
-        logger.info(f"extract output {accumulator}")
         return accumulator
 
 
@@ -72,7 +69,9 @@ def run_pipeline(argv=None):
             | 'Fixed Window Test' >> beam.WindowInto(beam.window.FixedWindows(60)) # here we are gathering elements in a 60 seconds windows
             | 'Key By User ID' >> beam.Map(lambda x: (x['user_id'], x))  # Pass the entire event dictionary as value
             | 'Count Success/Failure' >> beam.CombinePerKey(CountSuccessFailure())
-            | 'Print Results' >> beam.Map(print)
+            | 'Format Results' >> beam.Map(lambda kv: f'{kv[0]}: Success: {kv[1]["success"]}, Fail: {kv[1]["fail"]}')
+            | 'Write Results' >> beam.io.WriteToText('gs://input_files_my_pipeline/sawtooth-experiments')
+
         )
 
         # | 'Extract Timestamp' >> beam.Map(lambda x: beam.window.TimestampedValue(x, datetime.strptime(x['timestamp'], "%Y%m%d%H%M%S").timestamp()))
