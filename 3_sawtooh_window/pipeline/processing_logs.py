@@ -21,14 +21,6 @@ class SumSuccessFailure(beam.DoFn):
 
 
 
-def key_by_user_window(element, window=beam.DoFn.WindowParam):
-    user_id = element['user_id']
-    # Use window's start as part of the key (as an example)
-    window_start = window.start.micros
-    key = (user_id, window_start)
-    return key, 1
-
-
 def run_pipeline(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--input-subscription', dest='input_subscription', required=True)
@@ -56,26 +48,13 @@ def run_pipeline(argv=None):
             | 'Key By User ID' >> beam.Map(lambda x: (x['user_id'], x))  # Pass the entire event dictionary as value
             | 'Group By User ID' >> beam.GroupByKey()
             | 'Sum Success/Failure' >> beam.ParDo(SumSuccessFailure())
+            | 'Print final results' >> beam.Map(print)
         )
 
-        # | 'Extract Timestamp' >> beam.Map(lambda x: beam.window.TimestampedValue(x, datetime.strptime(x['timestamp'], "%Y%m%d%H%M%S").timestamp()))
 
 
         result = p.run()
         result.wait_until_finish()
-
-
-        # what if we want to do more? --> pardo function to associate multiple windows
-
-        # exmaple of output out of parse json
-        #({'timestamp': '20240306133453', 'user_id': 'user_0', 'event_type': 'success', 'source_ip': '192.1.1.2'},
-        #1709730326.152, (GlobalWindow,), PaneInfo(first: True, last: True, timing: UNKNOWN, index: 0, nonspeculative_index: 0))
-
-        # timestamps output
-        #({'timestamp': '20240306141824', 'user_id': 'user_4', 'event_type': 'success', 'source_ip': '192.1.4.2'}, 1709734704.0, (GlobalWindow,), PaneInfo(first: True, last: True, timing: UNKNOWN, index: 0, nonspeculative_index: 0))
-
-        # element to windo
-        #([1709734700.0, 1709734720.0), 1709734704.0, (GlobalWindow,), PaneInfo(first: True, last: True, timing: UNKNOWN, index: 0, nonspeculative_index: 0))
 
 
 if __name__ == '__main__':
