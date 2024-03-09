@@ -11,33 +11,6 @@ import json
 logger = get_logger()
 
 
-class AssignToSawtoothWindow(beam.DoFn):
-    def process(self, element, timestamp=beam.DoFn.TimestampParam):
-        # Example sawtooth pattern: 10s, 20s, 30s windows, then reset
-        window_sizes = [10, 20, 30]  # Window sizes in seconds
-        epoch_time = int(timestamp)
-        cycle_period = sum(window_sizes)
-        cycle_position = epoch_time % cycle_period
-
-        # Determine the current window size based on cycle_position
-        accumulator = 0
-        for size in window_sizes:
-            accumulator += size
-            if cycle_position < accumulator:
-                current_window_size = size
-                break
-
-        # Calculate the window start and end times
-        window_start = epoch_time - (epoch_time % current_window_size)
-        window_end = window_start + current_window_size
-        yield beam.window.IntervalWindow(window_start, window_end)
-
-
-def key_by_user_window(element, window=beam.DoFn.WindowParam):
-    user_id = element['user_id']  # Or use 'source_ip' for grouping by IP
-    return ((window, user_id), 1)
-
-
 class SumSuccessFailure(beam.DoFn):
     def process(self, element):
         # element[0] is the user_id, element[1] is an iterable of events
@@ -66,17 +39,22 @@ def run_pipeline(argv=None):
     )
 
     with beam.Pipeline(options=pipeline_options) as p:
-        windowed_elements = (
+        parsed_events = (
             p
             | 'Read from Pub/Sub' >> beam.io.ReadFromPubSub(subscription=known_args.input_subscription)
             | 'Parse JSON' >> beam.Map(lambda x: json.loads(x))
             | 'Extract Timestamp' >> beam.Map(lambda x: beam.window.TimestampedValue(x, datetime.strptime(x['timestamp'], "%Y%m%d%H%M%S").timestamp()))
-            | 'Assign elements within a sawtooth window' >> beam.ParDo(AssignToSawtoothWindow())
-            | 'Key By User and Window' >> beam.ParDo(key_by_user_window)  # Pass the entire event dictionary as value
-            | 'Group By User ID' >> beam.GroupByKey()
-            | 'Sum Success/Failure' >> beam.ParDo(SumSuccessFailure())
-            | 'Print final results' >> beam.Map(print)
         )
+
+        for window_duration in [30, 60, 180]:
+            windowed_events = (
+                parsed_events
+                | f'Fixed Window {window_duration}s' >> beam.WindowInto(beam.window.FixedWindows(window_duration))
+                | f'Key By User ID {window_duration}s' >> beam.Map(lambda x: (x['user_id'], x))
+                | f'Group By User ID {window_duration}s' >> beam.GroupByKey()
+                | f'Sum Success/Failure {window_duration}s' >> beam.ParDo(SumSuccessFailure())
+                | 'Print' >> beam.Map(print)
+            )
 
 
 
