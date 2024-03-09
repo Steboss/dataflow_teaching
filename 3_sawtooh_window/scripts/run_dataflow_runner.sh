@@ -25,4 +25,4 @@ python pipeline/processing_logs.py \
     --job_name ${PIPELINE_NAME} \
     --requirements_file requirements.txt \
     --maxNumWorkers ${NUM_MAX_WORKERS} \
-    --additional-experiments=enable_data_sampling
+    --experiments=enable_data_sampling
