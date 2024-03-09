@@ -65,7 +65,7 @@ def run_pipeline(argv=None):
             | 'Parse JSON' >> beam.Map(lambda x: json.loads(x))
             | 'Extract Timestamp' >> beam.Map(lambda x: beam.window.TimestampedValue(x, datetime.strptime(x['timestamp'], "%Y%m%d%H%M%S").timestamp()))
             | 'Fixed Window Test' >> beam.WindowInto(beam.window.FixedWindows(60)) # here we are gathering elements in a 60 seconds windows
-            | 'Key By User ID' >> beam.Map(lambda x: (x['user_id'], x['event_type']))
+            | 'Key By User and Event' >> beam.Map(lambda x: (x['user_id'], {'event_type': x['event_type']}))
             | 'Count Success/Failure' >> beam.CombinePerKey(CountSuccessFailure())
             | 'Print Results' >> beam.Map(print)
         )
