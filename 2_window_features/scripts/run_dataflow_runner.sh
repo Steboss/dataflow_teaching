@@ -17,4 +17,4 @@ python pipeline/processing_logs.py \
     --temp_location gs://mypipelines-dataflow-temp/ \
     --staging_location gs://dataflow-staging-europe-west2-1028464732444/ \
     --job_name ${PIPELINE_NAME} \
-    --setup_file ${HOME}/setup.py
+     --requirements_file ${HOME}/requirements.txt
