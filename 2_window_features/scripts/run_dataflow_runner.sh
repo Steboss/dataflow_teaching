@@ -4,6 +4,7 @@ PIPELINE_NAME="window-pipeline"
 PROJECT="long-axle-412512"
 REGION="us-central1"
 NUM_MAX_WORKERS=2
+HOME="/home/sbosisio486/dataflow_teaching/2_window_features"
 
 echo "Running pipeline"
 
@@ -16,4 +17,4 @@ python pipeline/processing_logs.py \
     --temp_location gs://mypipelines-dataflow-temp/ \
     --staging_location gs://dataflow-staging-europe-west2-1028464732444/ \
     --job_name ${PIPELINE_NAME} \
-    --setup_file setup.py
+    --setup_file ${HOME}/setup.py
