@@ -15,4 +15,5 @@ python pipeline/processing_logs.py \
     --project ${PROJECT} \
     --temp_location gs://mypipelines-dataflow-temp/ \
     --staging_location gs://dataflow-staging-europe-west2-1028464732444/ \
-    --job_name ${PIPELINE_NAME}
+    --job_name ${PIPELINE_NAME} \
+    --setup_file setup.py
