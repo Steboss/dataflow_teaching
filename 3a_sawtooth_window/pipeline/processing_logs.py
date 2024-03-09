@@ -46,15 +46,39 @@ def run_pipeline(argv=None):
             | 'Extract Timestamp' >> beam.Map(lambda x: beam.window.TimestampedValue(x, datetime.strptime(x['timestamp'], "%Y%m%d%H%M%S").timestamp()))
         )
 
-        for window_duration in [30, 60, 180]:
-            windowed_events = (
-                parsed_events
-                | f'Fixed Window {window_duration}s' >> beam.WindowInto(beam.window.FixedWindows(window_duration))
-                | f'Key By User ID {window_duration}s' >> beam.Map(lambda x: (x['user_id'], x))
-                | f'Group By User ID {window_duration}s' >> beam.GroupByKey()
-                | f'Sum Success/Failure {window_duration}s' >> beam.ParDo(SumSuccessFailure())
-                | 'Print' >> beam.Map(print)
-            )
+        # for window_duration in [30, 60, 180]:
+        #     windowed_events = (
+        #         parsed_events
+        #         | f'Fixed Window {window_duration}s' >> beam.WindowInto(beam.window.FixedWindows(window_duration))
+        #         | f'Key By User ID {window_duration}s' >> beam.Map(lambda x: (x['user_id'], x))
+        #         | f'Group By User ID {window_duration}s' >> beam.GroupByKey()
+        #         | f'Sum Success/Failure {window_duration}s' >> beam.ParDo(SumSuccessFailure())
+        #         | 'Print' >> beam.Map(print)
+        #     )
+        # Short-term window (e.g., 30s fixed)
+        short_term_window = (
+            parsed_events
+            | '30s Fixed Window' >> beam.WindowInto(beam.window.FixedWindows(30))
+        )
+
+        # Medium-term sliding window overlapping with short-term (e.g., 60s sliding, every 30s)
+        medium_term_window = (
+            parsed_events
+            | '60s Sliding Window Every 30s' >> beam.WindowInto(beam.window.SlidingWindows(60, 30))
+        )
+
+        # Long-term sliding window overlapping with both (e.g., 180s sliding, every 60s)
+        long_term_window = (
+            parsed_events
+            | '180s Sliding Window Every 60s' >> beam.WindowInto(beam.window.SlidingWindows(180, 60))
+        )
+
+        grouping_results = (
+            (short_term_window, medium_term_window, long_term_window)
+            | 'Flatten Grouping Results' >> beam.Flatten()
+            | 'Key By User ID' >> beam.Map(lambda x: (x['user_id'], x))
+            | 'Group By User ID' >> beam.GroupByKey()
+        )
 
 
 

@@ -13,7 +13,7 @@ import os
 
 logger = get_logger()
 
-
+# USE A CUSTOM HANDLER FOR THIS FUNCTION
 class GGMLModelInferenceFn(beam.DoFn):
     """ Apache Beam DoFn for invoking the GGML model inference using the whisper command-line tool."""
     # def setup(self):
