@@ -1,170 +1,96 @@
-import argparse
-import apache_beam as beam
-from apache_beam.options.pipeline_options import PipelineOptions
-from apache_beam.io.fileio import MatchFiles, ReadMatches
-from apache_beam.ml.inference.base import RunInference
-from apache_beam.ml.inference.base import ModelHandler
-from apache_beam.ml.inference.base import PredictionResult
-from typing import Any
-from typing import Dict
-from typing import Iterable
-from typing import Optional
-from typing import Sequence
-import tempfile
-from structlog import get_logger
 import subprocess
 import json
-from datetime import datetime
+import tempfile
+from typing import Iterable, Optional, Dict, Any
+from apache_beam.transforms.inference import ModelHandler, PredictionResult
 from google.cloud import storage
+from apache_beam.options.pipeline_options import PipelineOptions
+from structlog import get_logger
+import apache_beam as beam
+import argparse
 import os
+from apache_beam.ml.inference.base import RunInference
 
 
 logger = get_logger()
 
 
-class GGMLModelHandler(ModelHandler[str,
-                                     PredictionResult,
-                                     Language]):
-    def __init__(
-        self,
-        model_name: str = "whisper",
-    ):
-        """ Implementation of the ModelHandler for GGML whisper model.
+class GGMLModelHandler(ModelHandler[str, PredictionResult, str]):
+    def __init__(self, model_gcs_path: str, language: str = "Italian"):
+        """Implementation of the ModelHandler interface for GGML Whisper model using audio files as input.
 
         Example Usage::
 
-          pcoll | RunInference(SpacyModelHandler())
+          pcoll | RunInference(GGMLModelHandler(model_gcs_path="gs://ggml_models/ggml-model.bin"))
 
         Args:
-          model_name: The spaCy model name. Default is en_core_web_sm.
+          model_gcs_path: The GCS path to the Whisper model binary file.
+          language: The language for the Whisper model. Default is English.
         """
-        self._model_name = model_name
+        self.model_gcs_path = model_gcs_path
+        self.language = language
         self._env_vars = {}
+        self.model_temp_file = None
 
-
-    def load_model(self) -> Language:
+    def load_model(self) -> str:
         """Loads and initializes a model for processing."""
+        # Split the GCS path to bucket name and blob name
+        gcs_path_parts = self.model_gcs_path.replace("gs://", "").split("/")
+        bucket_name = gcs_path_parts[0]
+        model_blob_name = "/".join(gcs_path_parts[1:])
+
         # Initialize Google Cloud Storage client
-        self.client = storage.Client()
-
-        # Name of the bucket and object (model file)
-        bucket_name = 'ggml_models'
-        model_blob_name = 'ggml-model.bin' # whisper model
-
-        # Create a temporary file to store the downloaded model
-        self.model_temp_file = "whisper-model.bin"
-
-        # Download the model file from GCS to the temporary file
-        bucket = self.client.get_bucket(bucket_name)
-        blob = bucket.blob(model_blob_name)
-        blob.download_to_filename(self.model_temp_file.name)
-
-        return self.model_temp_file
-
-    def run_inference(
-        self,
-        wav_path: str, # check this because we need to open the file
-        model: Language,
-        inference_args: Optional[Dict[str, Any]] = None
-    ) -> Iterable[PredictionResult]:
-        """Runs inferences on a batch of text strings.
-
-        Args:
-          batch: A sequence of examples as text strings.
-          model: A spaCy language model
-          inference_args: Any additional arguments for an inference.
-
-        Returns:
-          An Iterable of type PredictionResult.
-        """
-        # Loop each text string, and use a tuple to store the inference results.
-        predictions = """"""
-        with tempfile.NamedTemporaryFile(delete=False) as temp_audio_file:
-            # Read the content from the ReadableFile and write it to the temporary file
-            with wav_path.open() as f:
-                temp_audio_file.write(f.read())
-
-        # Construct the whisper command
-        cmd = [
-            'whisper',
-            '-m', self.model_temp_file.name,
-            '-f', temp_audio_file.name,
-            '-l', language,
-            '-oj'
-        ]
-
-        # Execute whisper command
-        subprocess.run(cmd, check=True)
-
-        # do we need this?
-        # Load and yield the output from whisper
-        with open(output_file, 'r') as f:
-            output_data = json.load(f)
-            yield output_data
-
-        for one_text in batch:
-            doc = model(one_text)
-            predictions.append(
-                [(ent.text, ent.start_char, ent.end_char, ent.label_) for ent in doc.ents])
-        return [PredictionResult(x, y) for x, y in zip(batch, predictions)]
-
-
-class GGMLModelInferenceFn(beam.DoFn):
-    """ Apache Beam DoFn for invoking the GGML model inference using the whisper command-line tool."""
-    # def setup(self):
-    #     """ Set up the model binary path."""
-    #     self.model_binary_path = 'gs://ggml_models/ggml-model.bin'
-    def start_bundle(self):
-        # Initialize Google Cloud Storage client
-        self.client = storage.Client()
-
-        # Name of the bucket and object (model file)
-        bucket_name = 'ggml_models'
-        model_blob_name = 'ggml-model.bin' # whisper model
+        client = storage.Client()
 
         # Create a temporary file to store the downloaded model
         self.model_temp_file = tempfile.NamedTemporaryFile(delete=False)
 
         # Download the model file from GCS to the temporary file
-        bucket = self.client.get_bucket(bucket_name)
+        bucket = client.get_bucket(bucket_name)
         blob = bucket.blob(model_blob_name)
         blob.download_to_filename(self.model_temp_file.name)
 
-        # Now self.model_temp_file.name contains the path to the downloaded model file
-        # You can use this path in the process method for inference
+        return self.model_temp_file.name
 
-    def process(self, element):
-        with tempfile.NamedTemporaryFile(delete=False) as temp_audio_file:
-            # Read the content from the ReadableFile and write it to the temporary file
-            with element.open() as f:
-                temp_audio_file.write(f.read())
-        #input_file = element #'gs://input_files_my_pipeline/sampled_16khz.wav' # sysargv[1]
-        output_file = 'test_output.json' # sysargv[2]
-        language = 'italian'
+    def run_inference(
+        self,
+        batch: Iterable[str],  # Batch of GCS paths to WAV files
+        model: str,
+        inference_args: Optional[Dict[str, Any]] = None
+    ) -> Iterable[PredictionResult]:
+        """Runs inferences on a batch of audio files.
 
-        # Construct the whisper command
-        cmd = [
-            'whisper',
-            '-m', self.model_temp_file.name,
-            '-f', temp_audio_file.name,
-            '-l', language,
-            '-oj'
-        ]
-        #➜ build/bin/whisper -m ../ggml_whisper/output_ggml_model/ggml-model.bin -f ../ggml_whisper/sampled_16khz.wav -l italian -nt -d 60000 -otxt
-        # the output is in the folder of the file
+        Args:
+          batch: A sequence of GCS paths to WAV files.
+          model: The path to the local Whisper model file.
+          inference_args: Any additional arguments for inference.
 
-        # Execute whisper command
-        subprocess.run(cmd, check=True)
+        Returns:
+          An Iterable of type PredictionResult.
+        """
+        predictions = []
+        for wav_gcs_path in batch:
+            # Construct the command for Whisper inference
+            cmd = [
+                'whisper',
+                '-m', model,
+                '-f', wav_gcs_path,
+                '-l', self.language,
+                '-oj'  # Assumes output to JSON format
+            ]
 
-        # do we need this?
-        # Load and yield the output from whisper
-        with open(output_file, 'r') as f:
-            output_data = json.load(f)
-            yield output_data
+            # Execute the Whisper command and capture the output
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            predictions.append(result.stdout)
 
-    def finish_bundle(self):
-        # Clean up the temporary file
-        os.remove(self.model_temp_file.name)
+        # Convert JSON strings to PredictionResult objects
+        return [PredictionResult(wav_gcs_path, json.loads(prediction)) for wav_gcs_path, prediction in zip(batch, predictions)]
+
+    def cleanup(self):
+        """Cleanup temporary files and resources."""
+        if self.model_temp_file:
+            self.model_temp_file.close()
+            os.unlink(self.model_temp_file.name)
 
 
 def run_pipeline(argv=None):
@@ -178,21 +104,20 @@ def run_pipeline(argv=None):
     parser.add_argument('--region', dest='region', required=True)
 
     known_args, pipeline_args = parser.parse_known_args(argv)
-    dataflow_options = {"streaming": False,
-                        "save_main_session": True,
-                        "job_name": f"{known_args.job_name}-{datetime.now().strftime('%Y%m%d%H%M%S')}",
-                        "project": known_args.project,
-                        "region": known_args.region,
-                        "sdk_container_image": 'europe-west2-docker.pkg.dev/long-axle-412512/whisper-pipeline/whisper_pipeline_flex:latest',
-                        }
-    flags = ["--experiment=worker_accelerator=type:nvidia-tesla-p4;count:1;install-nvidia-driver"],
-    options = PipelineOptions(flags=flags, **dataflow_options)
+    pipeline_options = PipelineOptions(
+        pipeline_args,
+        streaming=True,
+        save_main_session=True,
+        job_name=known_args.job_name,
+        project=known_args.project,
+        region=known_args.region
+    )
 
-    with beam.Pipeline(options=options) as p:
+    with beam.Pipeline(options=pipeline_options) as p:
         result = (p
-                  | 'Match Audio Files' >> MatchFiles('gs://input_files_my_pipeline/sampled_16khz.wav')
-                  | 'Read Matches' >> ReadMatches()
-                  | 'Model Inference' >> beam.ParDo(GGMLModelInferenceFn())
+                  | 'Match Audio Files' >> beam.Create(['gs://input_files_my_pipeline/sampled_16khz.wav'])
+                  | 'Model Inference' >> RunInference(model_handler=GGMLModelHandler)
+                  | 'Print mode' >> beam.Map(print)
                   )
 
 

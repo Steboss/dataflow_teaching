@@ -45,16 +45,6 @@ def run_pipeline(argv=None):
             | 'Parse JSON' >> beam.Map(lambda x: json.loads(x))
             | 'Extract Timestamp' >> beam.Map(lambda x: beam.window.TimestampedValue(x, datetime.strptime(x['timestamp'], "%Y%m%d%H%M%S").timestamp()))
         )
-
-        # for window_duration in [30, 60, 180]:
-        #     windowed_events = (
-        #         parsed_events
-        #         | f'Fixed Window {window_duration}s' >> beam.WindowInto(beam.window.FixedWindows(window_duration))
-        #         | f'Key By User ID {window_duration}s' >> beam.Map(lambda x: (x['user_id'], x))
-        #         | f'Group By User ID {window_duration}s' >> beam.GroupByKey()
-        #         | f'Sum Success/Failure {window_duration}s' >> beam.ParDo(SumSuccessFailure())
-        #         | 'Print' >> beam.Map(print)
-        #     )
         # Short-term window (e.g., 30s fixed)
         short_term_window = (
             parsed_events
