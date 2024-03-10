@@ -17,7 +17,7 @@ echo "Running pipeline"
 python3 pipeline/whisper_pipeline.py --runner DataflowRunner \
    --project ${PROJECT} \
    --region ${REGION} \
-   --job_name ${PIPELINE} \
+   --job_name ${PIPELINE_NAME} \
    --requirements_file requirements.txt \
    --staging_location gs://dataflow-staging-europe-west2-1028464732444 \
    --temp_location gs://mypipelines-dataflow-temp/ \
