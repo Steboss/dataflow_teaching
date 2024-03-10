@@ -2,14 +2,15 @@ import subprocess
 import json
 import tempfile
 from typing import Iterable, Optional, Dict, Any
-from apache_beam.transforms.inference import ModelHandler, PredictionResult
+from apache_beam.ml.inference.base import RunInference
+from apache_beam.ml.inference.base import ModelHandler
+from apache_beam.ml.inference.base import PredictionResult
 from google.cloud import storage
 from apache_beam.options.pipeline_options import PipelineOptions
 from structlog import get_logger
 import apache_beam as beam
 import argparse
 import os
-from apache_beam.ml.inference.base import RunInference
 
 
 logger = get_logger()
