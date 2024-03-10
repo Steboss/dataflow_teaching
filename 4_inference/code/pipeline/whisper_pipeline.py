@@ -80,7 +80,7 @@ class GGMLModelHandler(ModelHandler[str, PredictionResult, str]):
                 '-oj', 'transcribed.json',
                 '--duration', '60000'
             ]
-
+            logger.info(f"Running Whisper command: {' '.join(cmd)}")
             # Execute the Whisper command and capture the output
             result = subprocess.run(cmd, capture_output=True, text=True, check=True)
             predictions.append(result.stdout)
