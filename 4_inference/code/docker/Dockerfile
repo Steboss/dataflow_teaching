@@ -1,13 +1,23 @@
-FROM gcr.io/dataflow-templates-base/python39-template-launcher-base
+FROM gcr.io/dataflow-templates-base/python38-template-launcher-base
 
 ENV DEBIAN_FRONTEND=noninteractive
 # Install Whisper and dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     ffmpeg \
-    git \
-    cmake \
-    gcc
+    gcc \
+    make
+
+# Install system dependencies required for Python, Beam, and GGML compilation
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential \
+        cmake \
+        git \
+        python3-pip \
+        libglib2.0-0 \
+    && ln -s /usr/bin/python3.8 /usr/bin/python \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # Clone the GGML repository and build the whisper binary
 RUN git clone https://github.com/ggerganov/ggml.git /ggml \
