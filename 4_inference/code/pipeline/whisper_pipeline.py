@@ -16,7 +16,25 @@ import os
 logger = get_logger()
 
 
-class GGMLModelHandler(ModelHandler[str, PredictionResult, str]):
+
+class WhisperModelWrapper:
+    def __init__(self, model_path: str, language: str = "Italian"):
+        self.model_path = model_path
+        self.language = language
+
+    def run(self, audio_file_path: str) -> Any:
+        cmd = [
+            'whisper',
+            '-m', self.model_path,
+            '-f', audio_file_path,
+            '-l', self.language,
+            '-oj', 'transcribed.json',
+            '--duration', '60000'
+        ]
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        return json.loads(result.stdout)
+
+class GGMLModelHandler(ModelHandler[str, PredictionResult, WhisperModelWrapper]):
     def __init__(self, model_gcs_path: str, language: str = "Italian"):
         """Implementation of the ModelHandler interface for GGML Whisper model using audio files as input.
 
@@ -33,7 +51,7 @@ class GGMLModelHandler(ModelHandler[str, PredictionResult, str]):
         self._env_vars = {}
         self.model_temp_file = None
 
-    def load_model(self) -> str:
+    def load_model(self) -> WhisperModelWrapper:
         """Loads and initializes a model for processing."""
         # Split the GCS path to bucket name and blob name
         gcs_path_parts = self.model_gcs_path.replace("gs://", "").split("/")
@@ -51,7 +69,7 @@ class GGMLModelHandler(ModelHandler[str, PredictionResult, str]):
         blob = bucket.blob(model_blob_name)
         blob.download_to_filename(self.model_temp_file.name)
 
-        return self.model_temp_file.name
+        return WhisperModelWrapper(model_path=self.model_temp_file.name, language=self.language)
 
     def run_inference(
         self,
@@ -71,19 +89,8 @@ class GGMLModelHandler(ModelHandler[str, PredictionResult, str]):
         """
         predictions = []
         for wav_gcs_path in batch:
-            # Construct the command for Whisper inference
-            cmd = [
-                'whisper',
-                '-m', model,
-                '-f', wav_gcs_path,
-                '-l', self.language,
-                '-oj', 'transcribed.json',
-                '--duration', '60000'
-            ]
-            logger.info(f"Running Whisper command: {' '.join(cmd)}")
-            # Execute the Whisper command and capture the output
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-            predictions.append(result.stdout)
+            prediction = model.run(wav_gcs_path)
+            predictions.append(prediction)
 
         # Convert JSON strings to PredictionResult objects
         return [PredictionResult(wav_gcs_path, json.loads(prediction)) for wav_gcs_path, prediction in zip(batch, predictions)]
