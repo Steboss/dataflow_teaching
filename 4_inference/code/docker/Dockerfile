@@ -1,12 +1,12 @@
-# Example Dockerfile (adjust as needed)
-FROM gcr.io/dataflow-templates-base/python3-template-launcher-base
+FROM gcr.io/dataflow-templates-base/python39-template-launcher-base
 
 # Install Whisper and dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     ffmpeg \
     git \
-    cmake
+    cmake \
+    gcc
 
 # Clone the GGML repository and build the whisper binary
 RUN git clone https://github.com/ggerganov/ggml.git ggml \
