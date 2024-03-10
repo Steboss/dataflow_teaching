@@ -98,6 +98,13 @@ class GGMLModelHandler(ModelHandler[str, PredictionResult, str]):
         # For now, we'll pass as there are no additional args required.
         pass
 
+    def get_preprocess_fns(self):
+        """Returns preprocessing functions, if any."""
+        # Since no preprocessing is required, return a pass-through function
+        def preprocess_fn(element):
+            return element
+        return [preprocess_fn]
+
 
 def run_pipeline(argv=None):
     parser = argparse.ArgumentParser()
@@ -122,7 +129,7 @@ def run_pipeline(argv=None):
     with beam.Pipeline(options=pipeline_options) as p:
         result = (p
                   | 'Match Audio Files' >> beam.Create(['gs://input_files_my_pipeline/sampled_16khz.wav'])
-                  | 'Model Inference' >> RunInference(model_handler=GGMLModelHandler)
+                  | 'Model Inference' >> RunInference(model_handler=GGMLModelHandler(model_gcs_path="gs://ggml_models/ggml-model.bin", language="italian"))
                   | 'Print mode' >> beam.Map(print)
                   )
 
