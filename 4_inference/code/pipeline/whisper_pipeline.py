@@ -5,7 +5,6 @@ from apache_beam.io.fileio import MatchFiles, ReadMatches
 from apache_beam.ml.inference.base import RunInference
 from apache_beam.ml.inference.base import ModelHandler
 from apache_beam.ml.inference.base import PredictionResult
-from spacy import Language
 from typing import Any
 from typing import Dict
 from typing import Iterable
@@ -22,15 +21,15 @@ import os
 
 logger = get_logger()
 
-# USE A CUSTOM HANDLER FOR THIS FUNCTION
-class SpacyModelHandler(ModelHandler[str,
+
+class GGMLModelHandler(ModelHandler[str,
                                      PredictionResult,
                                      Language]):
     def __init__(
         self,
-        model_name: str = "en_core_web_sm",
+        model_name: str = "whisper",
     ):
-        """ Implementation of the ModelHandler interface for spaCy using text as input.
+        """ Implementation of the ModelHandler for GGML whisper model.
 
         Example Usage::
 
@@ -42,13 +41,29 @@ class SpacyModelHandler(ModelHandler[str,
         self._model_name = model_name
         self._env_vars = {}
 
+
     def load_model(self) -> Language:
         """Loads and initializes a model for processing."""
-        return spacy.load(self._model_name)
+        # Initialize Google Cloud Storage client
+        self.client = storage.Client()
+
+        # Name of the bucket and object (model file)
+        bucket_name = 'ggml_models'
+        model_blob_name = 'ggml-model.bin' # whisper model
+
+        # Create a temporary file to store the downloaded model
+        self.model_temp_file = "whisper-model.bin"
+
+        # Download the model file from GCS to the temporary file
+        bucket = self.client.get_bucket(bucket_name)
+        blob = bucket.blob(model_blob_name)
+        blob.download_to_filename(self.model_temp_file.name)
+
+        return self.model_temp_file
 
     def run_inference(
         self,
-        batch: Sequence[str],
+        wav_path: str, # check this because we need to open the file
         model: Language,
         inference_args: Optional[Dict[str, Any]] = None
     ) -> Iterable[PredictionResult]:
@@ -63,7 +78,30 @@ class SpacyModelHandler(ModelHandler[str,
           An Iterable of type PredictionResult.
         """
         # Loop each text string, and use a tuple to store the inference results.
-        predictions = []
+        predictions = """"""
+        with tempfile.NamedTemporaryFile(delete=False) as temp_audio_file:
+            # Read the content from the ReadableFile and write it to the temporary file
+            with wav_path.open() as f:
+                temp_audio_file.write(f.read())
+
+        # Construct the whisper command
+        cmd = [
+            'whisper',
+            '-m', self.model_temp_file.name,
+            '-f', temp_audio_file.name,
+            '-l', language,
+            '-oj'
+        ]
+
+        # Execute whisper command
+        subprocess.run(cmd, check=True)
+
+        # do we need this?
+        # Load and yield the output from whisper
+        with open(output_file, 'r') as f:
+            output_data = json.load(f)
+            yield output_data
+
         for one_text in batch:
             doc = model(one_text)
             predictions.append(

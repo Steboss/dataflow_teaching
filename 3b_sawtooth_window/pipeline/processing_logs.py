@@ -14,8 +14,11 @@ class DetectAnomalies(beam.DoFn):
         user_id, events = element
         # Simple anomaly detection logic (example: high number of failed logins)
         failure_count = sum(1 for event in events if event['event_type'] == 'fail')
+        # Convert window start and end to timestamps or strings for serialization
+        window_start = window.start.to_utc_datetime().isoformat()
+        window_end = window.end.to_utc_datetime().isoformat()
         if failure_count > 5:  # Threshold for anomaly
-            yield user_id, {'window': window, 'anomaly': True, 'failures': failure_count}
+            yield user_id, { 'window_start': window_start, 'window_end': window_end, 'anomaly': True, 'failures': failure_count}
 
 
 # Moving Average Calculation (for 60s sliding window)
@@ -33,7 +36,10 @@ class CalculateTotalSum(beam.DoFn):
         user_id, events = element
         success_count = sum(1 for event in events if event['event_type'] == 'success')
         failure_count = sum(1 for event in events if event['event_type'] == 'fail')
-        yield user_id, {'window': window, 'success': success_count, 'fail': failure_count}
+        # Convert window start and end to timestamps or strings for serialization
+        window_start = window.start.to_utc_datetime().isoformat()
+        window_end = window.end.to_utc_datetime().isoformat()
+        yield user_id, { 'window_start': window_start, 'window_end': window_end, 'success': success_count, 'fail': failure_count}
 
 
 
