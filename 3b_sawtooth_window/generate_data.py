@@ -22,53 +22,35 @@ ipaddresses.extend([str(ip) for ip in ipaddress.IPv4Network('192.0.1.0/28')])
 user_addresses = [str(ip) for ip in ipaddress.IPv4Network('192.1.8.0/28')]
 
 
-def generate_login_events(start_time, end_time, num_users=10000, num_scammers=1000, event_rate_per_hour=1000):
-    users = [f'user_{i}' for i in range(num_users)]
-    scammers = [f'scammer_{i}' for i in range(num_scammers)]
-    events = []
-
-    # Generate events for normal users
-    for user in users:
-        current_time = start_time
-        while current_time < end_time:
-            current_time += timedelta(hours=1/event_rate_per_hour)
-            events.append({
-                'timestamp': current_time.strftime("%Y%m%d%H%M%S"),
-                'user_id': user,
-                'event_type': 'success' if random.random() < 0.95 else 'fail',  # 95% success rate
-                'source_ip': random.choice(user_addresses)
-            })
-
-    # Generate events for scammers
-    for scammer in scammers:
-        current_time = start_time
-        while current_time < end_time:
-            # Scammers try more frequently
-            current_time += timedelta(minutes=random.randint(1, 30))
-            events.append({
-                'timestamp': current_time.strftime("%Y%m%d%H%M%S"),
-                'user_id': scammer,
-                'event_type': 'fail',  # Scammers always fail
-                'source_ip': random.choice(ipaddresses)
-            })
-
-    return events
-
-
 def publish_events():
+    """ Function to generate events for users and spammers """
+    users = [f'user_{i}' for i in range(1000)] # 1000 users
+    spammers = [f'user_{i}' for i in range(1,100)]
+    # users number 1,-100 are spammers
     while True:
+        delay = random.uniform(0.1, 0.9)
         start_time = datetime.now()
-        end_time = start_time + timedelta(hours=1)
-        data = generate_login_events(start_time, end_time)
-        for event in data:
-            sender = random.uniform(0.1, 0.9) # generate a random number to send the event
-            message = json.dumps(event)
-            logger.info(f"Publishing {message} to {topic_path}")
-            publisher.publish(topic_path, message.encode("utf-8"))
-            time.sleep(sender)
-# # Example usage
-# start_time = datetime.now()
-# end_time = start_time + timedelta(hours=1)  # Simulate over 1 hour
-# events = generate_login_events(start_time, end_time)
+        # pick a random user
+        random_user = random.choice(users)
+        if random_user in spammers:
+            # if the random user is a spammer, generate a fail event
+            event = {
+                'timestamp': start_time.strftime("%Y%m%d%H%M%S"),
+                'user_id': random_user,
+                'event_type': random.choice(['fail', 'success']), # 50% fail rate
+                'source_ip': random.choice(ipaddresses) # change ip address frequently
+            }
+        else:
+            # if the random user is not a spammer, generate a success event
+            event = {
+                'timestamp': start_time.strftime("%Y%m%d%H%M%S"),
+                'user_id': random_user,
+                'event_type': 'success',
+                'source_ip': random.choice(ipaddresses) # change ip address frequently
+            }
+        message = json.dumps(event)
+        publisher.publish(topic_path, message.encode("utf-8"))
+        time.sleep(delay)
+
 
 publish_events()

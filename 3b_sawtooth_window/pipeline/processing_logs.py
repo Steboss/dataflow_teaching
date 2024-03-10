@@ -48,7 +48,7 @@ class CalculateMovingAverage(beam.DoFn):
         # Convert window start and end to timestamps or strings for serialization
         window_start = window.start.to_utc_datetime().isoformat()
         window_end = window.end.to_utc_datetime().isoformat()
-        yield user_id, {'window_start': window_start, 'window_end': window_end,'moving_average': average}
+        yield user_id, {'window_start': window_start, 'window_end': window_end, 'moving_average': average}
 
 
 # Total Sum Aggregation (for 180s sliding window)
