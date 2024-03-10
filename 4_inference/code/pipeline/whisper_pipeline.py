@@ -77,7 +77,8 @@ class GGMLModelHandler(ModelHandler[str, PredictionResult, str]):
                 '-m', model,
                 '-f', wav_gcs_path,
                 '-l', self.language,
-                '-oj'  # Assumes output to JSON format
+                '-oj', 'transcribed.json',
+                '--duration', '60000'
             ]
 
             # Execute the Whisper command and capture the output
