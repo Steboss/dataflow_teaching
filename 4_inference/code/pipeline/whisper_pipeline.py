@@ -119,7 +119,7 @@ def run_pipeline(argv=None):
     known_args, pipeline_args = parser.parse_known_args(argv)
     pipeline_options = PipelineOptions(
         pipeline_args,
-        streaming=True,
+        streaming=False,
         save_main_session=True,
         job_name=known_args.job_name,
         project=known_args.project,
