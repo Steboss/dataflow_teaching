@@ -5,10 +5,7 @@ FROM gcr.io/dataflow-templates-base/python3-template-launcher-base
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     ffmpeg \
-    git \
-    && git clone https://github.com/openai/whisper.git /whisper \
-    && cd /whisper \
-    && pip install .
+    git
 
 # Clone the GGML repository and build the whisper binary
 RUN git clone https://github.com/ggerganov/ggml.git /ggml \
