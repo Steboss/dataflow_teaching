@@ -93,6 +93,11 @@ class GGMLModelHandler(ModelHandler[str, PredictionResult, str]):
             self.model_temp_file.close()
             os.unlink(self.model_temp_file.name)
 
+    def validate_inference_args(self, inference_args: Optional[Dict[str, Any]] = None):
+        # Validate any additional arguments for inference here.
+        # For now, we'll pass as there are no additional args required.
+        pass
+
 
 def run_pipeline(argv=None):
     parser = argparse.ArgumentParser()
