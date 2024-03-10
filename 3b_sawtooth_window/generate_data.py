@@ -9,8 +9,7 @@ from structlog import get_logger
 
 logger = get_logger()
 project_id = "long-axle-412512"
-topic_id = "example-sawtooth-window" # MODIFY THIS
-# rojects/long-axle-412512/subscriptions/example-sawtooth-window-sub
+topic_id = "example-sawtooth-window"
 publisher = pubsub_v1.PublisherClient()
 topic_path = publisher.topic_path(project_id, topic_id)
 
@@ -20,6 +19,7 @@ ipaddresses.extend([str(ip) for ip in ipaddress.IPv4Network('192.1.1.0/28')])
 ipaddresses.extend([str(ip) for ip in ipaddress.IPv4Network('192.1.2.0/28')])
 ipaddresses.extend([str(ip) for ip in ipaddress.IPv4Network('192.1.4.0/28')])
 ipaddresses.extend([str(ip) for ip in ipaddress.IPv4Network('192.0.1.0/28')])
+user_addresses = [str(ip) for ip in ipaddress.IPv4Network('192.1.8.0/28')]
 
 
 def generate_login_events(start_time, end_time, num_users=10000, num_scammers=1000, event_rate_per_hour=1000):
@@ -36,7 +36,7 @@ def generate_login_events(start_time, end_time, num_users=10000, num_scammers=10
                 'timestamp': current_time.strftime("%Y%m%d%H%M%S"),
                 'user_id': user,
                 'event_type': 'success' if random.random() < 0.95 else 'fail',  # 95% success rate
-                'source_ip': random.choice(ipaddresses)
+                'source_ip': random.choice(user_addresses)
             })
 
     # Generate events for scammers
@@ -49,7 +49,7 @@ def generate_login_events(start_time, end_time, num_users=10000, num_scammers=10
                 'timestamp': current_time.strftime("%Y%m%d%H%M%S"),
                 'user_id': scammer,
                 'event_type': 'fail',  # Scammers always fail
-                'source_ip': '10.0.0.1'
+                'source_ip': random.choice(ipaddresses)
             })
 
     return events

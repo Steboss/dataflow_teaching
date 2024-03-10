@@ -12,13 +12,31 @@ logger = get_logger()
 class DetectAnomalies(beam.DoFn):
     def process(self, element, window=beam.DoFn.WindowParam):
         user_id, events = element
-        # Simple anomaly detection logic (example: high number of failed logins)
-        failure_count = sum(1 for event in events if event['event_type'] == 'fail')
+        # Collect unique IP addresses from the events
+        unique_ips = set(event['source_ip'] for event in events)
+
+        # Count the number of unique IP addresses
+        unique_ip_count = len(unique_ips)
+
         # Convert window start and end to timestamps or strings for serialization
         window_start = window.start.to_utc_datetime().isoformat()
         window_end = window.end.to_utc_datetime().isoformat()
-        if failure_count > 5:  # Threshold for anomaly
-            yield user_id, { 'window_start': window_start, 'window_end': window_end, 'anomaly': True, 'failures': failure_count}
+
+        # You can still include your anomaly detection logic here if needed
+        failure_count = sum(1 for event in events if event['event_type'] == 'fail')
+        if failure_count > 5:  # Example threshold for anomaly
+            anomaly_detected = True
+        else:
+            anomaly_detected = False
+
+        # Yield a dictionary with the counts and window information
+        yield user_id, {
+            'window_start': window_start,
+            'window_end': window_end,
+            'unique_ip_count': unique_ip_count,
+            'anomaly_detected': anomaly_detected,
+            'failures': failure_count
+        }
 
 
 # Moving Average Calculation (for 60s sliding window)
@@ -27,7 +45,10 @@ class CalculateMovingAverage(beam.DoFn):
         user_id, events = element
         total_successes = sum(1 for event in events if event['event_type'] == 'success')
         average = total_successes / len(events) if events else 0
-        yield user_id, {'window': window, 'moving_average': average}
+        # Convert window start and end to timestamps or strings for serialization
+        window_start = window.start.to_utc_datetime().isoformat()
+        window_end = window.end.to_utc_datetime().isoformat()
+        yield user_id, {'window_start': window_start, 'window_end': window_end,'moving_average': average}
 
 
 # Total Sum Aggregation (for 180s sliding window)
@@ -39,7 +60,7 @@ class CalculateTotalSum(beam.DoFn):
         # Convert window start and end to timestamps or strings for serialization
         window_start = window.start.to_utc_datetime().isoformat()
         window_end = window.end.to_utc_datetime().isoformat()
-        yield user_id, { 'window_start': window_start, 'window_end': window_end, 'success': success_count, 'fail': failure_count}
+        yield user_id, {'window_start': window_start, 'window_end': window_end, 'success': success_count, 'fail': failure_count}
 
 
 
@@ -68,22 +89,13 @@ def run_pipeline(argv=None):
             | 'Extract Timestamp' >> beam.Map(lambda x: beam.window.TimestampedValue(x, datetime.strptime(x['timestamp'], "%Y%m%d%H%M%S").timestamp()))
         )
 
-        # for window_duration in [30, 60, 180]:
-        #     windowed_events = (
-        #         parsed_events
-        #         | f'Fixed Window {window_duration}s' >> beam.WindowInto(beam.window.FixedWindows(window_duration))
-        #         | f'Key By User ID {window_duration}s' >> beam.Map(lambda x: (x['user_id'], x))
-        #         | f'Group By User ID {window_duration}s' >> beam.GroupByKey()
-        #         | f'Sum Success/Failure {window_duration}s' >> beam.ParDo(SumSuccessFailure())
-        #         | 'Print' >> beam.Map(print)
-        #     )
         # Short-term window (e.g., 30s fixed)
         short_term_window = (
             parsed_events
             | '30s Fixed Window' >> beam.WindowInto(beam.window.FixedWindows(30))
             | 'Key By User ID for Anomalies' >> beam.Map(lambda x: (x['user_id'], x))
             | 'Group By User ID for Anomalies' >> beam.GroupByKey()
-            | 'Detect Anomalies' >> beam.ParDo(DetectAnomalies())
+            | 'Calculate Total Sum' >> beam.ParDo(CalculateTotalSum())
         )
 
         # Medium-term sliding window overlapping with short-term (e.g., 60s sliding, every 30s)
@@ -101,7 +113,7 @@ def run_pipeline(argv=None):
             | '180s Sliding Window Every 60s' >> beam.WindowInto(beam.window.SlidingWindows(180, 60))
             | 'Key By User ID for Total Sums' >> beam.Map(lambda x: (x['user_id'], x))
             | 'Group By User ID for Total Sums' >> beam.GroupByKey()
-            | 'Calculate Total Sum' >> beam.ParDo(CalculateTotalSum())
+            | 'Detect Anomalies' >> beam.ParDo(DetectAnomalies())
         )
 
         ((short_term_window, medium_term_window, long_term_window)
