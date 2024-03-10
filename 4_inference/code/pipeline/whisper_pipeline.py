@@ -16,9 +16,8 @@ import os
 logger = get_logger()
 
 
-
 class WhisperModelWrapper:
-    def __init__(self, model_path: str, language: str = "Italian"):
+    def __init__(self, model_path: str, language: str = "italian"):
         self.model_path = model_path
         self.language = language
 
@@ -33,6 +32,7 @@ class WhisperModelWrapper:
         ]
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         return json.loads(result.stdout)
+
 
 class GGMLModelHandler(ModelHandler[str, PredictionResult, WhisperModelWrapper]):
     def __init__(self, model_gcs_path: str, language: str = "Italian"):
@@ -131,7 +131,8 @@ def run_pipeline(argv=None):
         save_main_session=True,
         job_name=known_args.job_name,
         project=known_args.project,
-        region=known_args.region
+        region=known_args.region,
+        sdk_container_image='europe-west2-docker.pkg.dev/long-axle-412512/whisper-pipeline/whisper_pipeline:latest',
     )
 
     with beam.Pipeline(options=pipeline_options) as p:
