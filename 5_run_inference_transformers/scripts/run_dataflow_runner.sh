@@ -10,4 +10,5 @@ python3 pipeline/main.py --runner DataflowRunner \
    --temp_location gs://mypipelines-dataflow-temp/ \
    --experiments "use_runner_v2,no_use_multiple_sdk_containers" \
    --machine_type=n1-highmem-16 \
-   --disk_size_gb=200
+   --disk_size_gb=200 \
+   --experiments=enable_data_sampling

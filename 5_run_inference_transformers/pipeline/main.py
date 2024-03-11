@@ -102,7 +102,8 @@ def run():
             | "CreateInputs" >> beam.Create(input_prompts)
             | "Preprocess" >> beam.ParDo(Preprocess(tokenizer=tokenizer))
             | "RunInference" >> RunInference(model_handler=model_handler)
-            | "PostProcess" >> beam.ParDo(Postprocess(tokenizer=tokenizer)))
+            #| "PostProcess" >> beam.ParDo(Postprocess(tokenizer=tokenizer)))
+    )
     # [END Pipeline]
 
 
