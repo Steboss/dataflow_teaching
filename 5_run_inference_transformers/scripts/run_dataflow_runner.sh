@@ -1,8 +1,8 @@
 #!/bin/bash 
 
 python3 pipeline/main.py --runner DataflowRunner \
-   --model_state_dict_path gs://ggml_models/state_dict.pth \
-   --model_name t5-small \
+   --model_state_dict_path gs://ggml_models/gptj.pth \
+   --model_name "EleutherAI/gpt-j-6B" \
    --project long-axle-412512 \
    --region us-central1 \
    --requirements_file requirements.txt \
