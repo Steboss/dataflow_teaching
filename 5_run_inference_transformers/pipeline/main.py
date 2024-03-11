@@ -77,7 +77,7 @@ def run():
     known_args, pipeline_args = parse_args(sys.argv)
     pipeline_options = PipelineOptions(pipeline_args)
 
-    gen_fn = make_tensor_model_fn('generate', inference_args={"temperature":0.9, "max_length":100})
+    gen_fn = make_tensor_model_fn('generate')
 
     model_handler = PytorchModelHandlerTensor(
         state_dict_path=known_args.model_state_dict_path,
@@ -86,7 +86,8 @@ def run():
             "config": AutoConfig.from_pretrained(known_args.model_name, torch_dtype=torch.float16)
         },
         device="cpu", # try cpu first and then cuda
-        inference_fn=gen_fn)
+        inference_fn=gen_fn,
+        inference_args={"temperature":0.9, "max_length":100})
 
     input_prompts = (
         "In a shocking finding, scientists discovered a herd of unicorns living in a remote, previously unexplored valley, in the Andes Mountains. Even more surprising to the researchers was the fact that the unicorns spoke perfect English."
