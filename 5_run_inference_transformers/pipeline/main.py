@@ -87,7 +87,7 @@ def run():
         },
         device="cpu", # try cpu first and then cuda
         inference_fn=gen_fn,
-        inference_args={"temperature":0.9, "max_length":100, "num_return_sequences"=5})
+        inference_args={"temperature":0.9, "max_length":100, "num_return_sequences":5})
 
     input_prompts = [
         "In a shocking finding, scientists discovered a herd of unicorns living in a remote, previously unexplored valley, in the Andes Mountains. Even more surprising to the researchers was the fact that the unicorns spoke perfect English."
