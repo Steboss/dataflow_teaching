@@ -10,7 +10,6 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 from transformers import AutoConfig
 
 
-
 class Preprocess(beam.DoFn):
 
     def __init__(self, tokenizer: AutoTokenizer):
@@ -84,7 +83,7 @@ def run():
         state_dict_path=known_args.model_state_dict_path,
         model_class=AutoModelForCausalLM, # modify this
         model_params={
-            "config": AutoModelForCausalLM.from_pretrained(known_args.model_name)
+            "config": AutoConfig.from_pretrained(known_args.model_name)
         },
         device="cpu", # try cpu first and then cuda
         inference_fn=gen_fn,
