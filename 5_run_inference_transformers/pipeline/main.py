@@ -1,13 +1,14 @@
 import argparse
 import sys
 
-import torch
 import apache_beam as beam
 from apache_beam.ml.inference.base import RunInference
 from apache_beam.ml.inference.pytorch_inference import PytorchModelHandlerTensor
 from apache_beam.ml.inference.pytorch_inference import make_tensor_model_fn
 from apache_beam.options.pipeline_options import PipelineOptions
-from transformers import AutoConfig, AutoTokenizer, GPT2Model, GPT2LMHeadModel
+from transformers import AutoTokenizer, GPT2LMHeadModel
+from transformers import AutoConfig
+
 
 
 class Preprocess(beam.DoFn):
@@ -83,11 +84,12 @@ def run():
         state_dict_path=known_args.model_state_dict_path,
         model_class=GPT2LMHeadModel, # modify this
         model_params={
-            "config": GPT2LMHeadModel.from_pretrained(known_args.model_name)
+            "config": AutoConfig.from_pretrained(known_args.model_name)
         },
         device="cpu", # try cpu first and then cuda
         inference_fn=gen_fn,
-        inference_args={"temperature":0.9, "max_length":100, "num_return_sequences":5})
+        #inference_args={"temperature":0.9, "max_length":100, "num_return_sequences":5}
+        )
 
     input_prompts = [
         "In a shocking finding, scientists discovered a herd of unicorns living in a remote, previously unexplored valley, in the Andes Mountains. Even more surprising to the researchers was the fact that the unicorns spoke perfect English."
@@ -103,7 +105,7 @@ def run():
             | "Preprocess" >> beam.ParDo(Preprocess(tokenizer=tokenizer))
             | "RunInference" >> RunInference(model_handler=model_handler)
             #| "PostProcess" >> beam.ParDo(Postprocess(tokenizer=tokenizer)))
-    )
+          )
     # [END Pipeline]
 
 
