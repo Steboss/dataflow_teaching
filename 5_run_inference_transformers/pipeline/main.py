@@ -7,7 +7,7 @@ from apache_beam.ml.inference.base import RunInference
 from apache_beam.ml.inference.pytorch_inference import PytorchModelHandlerTensor
 from apache_beam.ml.inference.pytorch_inference import make_tensor_model_fn
 from apache_beam.options.pipeline_options import PipelineOptions
-from transformers import AutoConfig, GPTJForCausalLM, AutoTokenizer
+from transformers import AutoConfig, AutoTokenizer, GPT2Model
 
 
 class Preprocess(beam.DoFn):
@@ -81,13 +81,13 @@ def run():
 
     model_handler = PytorchModelHandlerTensor(
         state_dict_path=known_args.model_state_dict_path,
-        model_class=GPTJForCausalLM, # modify this
+        model_class=GPT2Model, # modify this
         model_params={
             "config": AutoConfig.from_pretrained(known_args.model_name, torch_dtype=torch.float16)
         },
         device="cpu", # try cpu first and then cuda
         inference_fn=gen_fn,
-        inference_args={"temperature":0.9, "max_length":100})
+        inference_args={"temperature":0.9, "max_length":100, "num_return_sequences"=5})
 
     input_prompts = [
         "In a shocking finding, scientists discovered a herd of unicorns living in a remote, previously unexplored valley, in the Andes Mountains. Even more surprising to the researchers was the fact that the unicorns spoke perfect English."
