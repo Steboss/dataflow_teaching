@@ -83,7 +83,7 @@ def run():
         state_dict_path=known_args.model_state_dict_path,
         model_class=AutoModelForCausalLM, # modify this
         model_params={
-            "config": AutoConfig.from_pretrained(known_args.model_name)
+            "config": AutoModelForCausalLM.from_config(known_args.model_name)
         },
         device="cpu", # try cpu first and then cuda
         inference_fn=gen_fn,
