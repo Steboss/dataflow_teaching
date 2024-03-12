@@ -6,7 +6,7 @@ from apache_beam.ml.inference.base import RunInference
 from apache_beam.ml.inference.pytorch_inference import PytorchModelHandlerTensor
 from apache_beam.ml.inference.pytorch_inference import make_tensor_model_fn
 from apache_beam.options.pipeline_options import PipelineOptions
-from transformers import AutoTokenizer, GPT2LMHeadModel
+from transformers import AutoTokenizer, AutoModelForCausalLM
 from transformers import AutoConfig
 
 
@@ -82,9 +82,9 @@ def run():
 
     model_handler = PytorchModelHandlerTensor(
         state_dict_path=known_args.model_state_dict_path,
-        model_class=GPT2LMHeadModel, # modify this
+        model_class=AutoModelForCausalLM, # modify this
         model_params={
-            "config": AutoConfig.from_pretrained(known_args.model_name)
+            "config": AutoModelForCausalLM.from_pretrained(known_args.model_name)
         },
         device="cpu", # try cpu first and then cuda
         inference_fn=gen_fn,
