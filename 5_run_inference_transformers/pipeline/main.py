@@ -7,7 +7,7 @@ from apache_beam.ml.inference.base import RunInference
 from apache_beam.ml.inference.pytorch_inference import PytorchModelHandlerTensor
 from apache_beam.ml.inference.pytorch_inference import make_tensor_model_fn
 from apache_beam.options.pipeline_options import PipelineOptions
-from transformers import AutoConfig, AutoTokenizer, GPT2Model
+from transformers import AutoConfig, AutoTokenizer, GPT2Model, GPT2LMHeadModel
 
 
 class Preprocess(beam.DoFn):
@@ -62,7 +62,7 @@ def parse_args(argv):
         dest="model_name",
         required=False,
         help="Path to the model's state_dict.",
-        default="EleutherAI/gpt-j-6B",
+        default="gpt2",
     )
 
     return parser.parse_known_args(args=argv)
@@ -81,9 +81,9 @@ def run():
 
     model_handler = PytorchModelHandlerTensor(
         state_dict_path=known_args.model_state_dict_path,
-        model_class=GPT2Model, # modify this
+        model_class=GPT2LMHeadModel, # modify this
         model_params={
-            "config": AutoConfig.from_pretrained(known_args.model_name, torch_dtype=torch.float16)
+            "config": GPT2LMHeadModel.from_pretrained(known_args.model_name)
         },
         device="cpu", # try cpu first and then cuda
         inference_fn=gen_fn,
