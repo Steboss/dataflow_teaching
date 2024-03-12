@@ -6,7 +6,7 @@ from apache_beam.ml.inference.base import RunInference
 from apache_beam.ml.inference.pytorch_inference import PytorchModelHandlerTensor
 from apache_beam.ml.inference.pytorch_inference import make_tensor_model_fn
 from apache_beam.options.pipeline_options import PipelineOptions
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoTokenizer, T5ForConditionalGeneration
 from transformers import AutoConfig
 
 
@@ -62,7 +62,7 @@ def parse_args(argv):
         dest="model_name",
         required=False,
         help="Path to the model's state_dict.",
-        default="gpt2",
+        default="t5-small",
     )
 
     return parser.parse_known_args(args=argv)
@@ -81,13 +81,13 @@ def run():
 
     model_handler = PytorchModelHandlerTensor(
         state_dict_path=known_args.model_state_dict_path,
-        model_class=AutoModelForCausalLM, # modify this
+        model_class=T5ForConditionalGeneration, # modify this
         model_params={
-            "config": AutoModelForCausalLM.from_config(known_args.model_name)
+            "config": AutoConfig.from_config(known_args.model_name)
         },
         device="cpu", # try cpu first and then cuda
         inference_fn=gen_fn,
-        #inference_args={"temperature":0.9, "max_length":100, "num_return_sequences":5}
+        inference_args={"num_beams":7, "no_repeat_ngram_size":2, "max_length":100,}
         )
 
     input_prompts = [
@@ -103,8 +103,8 @@ def run():
             | "CreateInputs" >> beam.Create(input_prompts)
             | "Preprocess" >> beam.ParDo(Preprocess(tokenizer=tokenizer))
             | "RunInference" >> RunInference(model_handler=model_handler)
-            #| "PostProcess" >> beam.ParDo(Postprocess(tokenizer=tokenizer)))
-          )
+            | "PostProcess" >> beam.ParDo(Postprocess(tokenizer=tokenizer)))
+
     # [END Pipeline]
 
 
