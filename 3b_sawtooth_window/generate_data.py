@@ -46,7 +46,7 @@ def publish_events():
                 'timestamp': start_time.strftime("%Y%m%d%H%M%S"),
                 'user_id': random_user,
                 'event_type': 'success',
-                'source_ip': random.choice(ipaddresses) # change ip address frequently
+                'source_ip': random.choice(user_addresses) # change ip address frequently
             }
         message = json.dumps(event)
         publisher.publish(topic_path, message.encode("utf-8"))
