@@ -1,7 +1,7 @@
 #!/bin/bash
 
 python3 pipeline/main.py --runner DataflowRunner \
-   --model_state_dict_path gs://ggml_models/gpt2.pth \
+   --model_state_dict_path gs://ggml_models/state_dict.pth \
    --model_name t5-small \
    --project long-axle-412512 \
    --region us-central1 \
