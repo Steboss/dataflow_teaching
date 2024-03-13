@@ -89,11 +89,11 @@ def run():
         },
         device="cpu", # try cpu first and then cuda
         inference_fn=gen_fn,
-        inference_args={"num_beams":7, "no_repeat_ngram_size":2, "min_length":100, "max_length":1000,}
+        inference_args={"no_repeat_ngram_size":3, "min_length":200, "max_length":1000,}
         )
 
     input_prompts = [
-        "summarize: In a shocking finding, scientists discovered a herd of unicorns living in a remote, previously unexplored valley, in the Andes Mountains. Even more surprising to the researchers was the fact that"
+        "summarize: Mi rivolgo a chi vuole un po' di buonsenso, una giustizia che difende gli aggrediti e non gli aggressori, uno Stato che permette di andare in pensione dopo 41 anni aprendo il mondo del lavoro ai nostri giovani, una burocrazia che lascia lavorare serenamente gli imprenditori, una società più sicura per i nostri figli, un Paese dove le culle tornano a riempirsi."
     ]
 
     tokenizer = AutoTokenizer.from_pretrained(known_args.model_name)
