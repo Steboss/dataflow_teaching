@@ -1,8 +1,8 @@
 #!/bin/bash
 
 python3 pipeline/main.py --runner DataflowRunner \
-   --model_state_dict_path gs://ggml_models/gpt2.pth \
-   --model_name gpt2 \
+   --model_state_dict_path gs://ggml_models/gpt2_medium.pth \
+   --model_name openai-community/gpt2 \
    --project long-axle-412512 \
    --region us-central1 \
    --requirements_file requirements.txt \
