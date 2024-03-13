@@ -1,6 +1,6 @@
 import argparse
 import sys
-
+import logging
 import apache_beam as beam
 from apache_beam.ml.inference.base import RunInference
 from apache_beam.ml.inference.pytorch_inference import PytorchModelHandlerTensor
@@ -41,10 +41,12 @@ class Postprocess(beam.DoFn):
           Args:
             element: The RunInference output to be processed.
         """
+        logging.info(f"Input postprocess element {element}")
         decoded_inputs = self._tokenizer.decode(
             element.example, skip_special_tokens=True)
         decoded_outputs = self._tokenizer.decode(
             element.inference, skip_special_tokens=True)
+        logging.info(f"{decoded_inputs} \t Output: {decoded_outputs}")
         print(f"{decoded_inputs} \t Output: {decoded_outputs}")
 
 
