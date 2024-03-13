@@ -89,11 +89,16 @@ def run():
         },
         device="cpu", # try cpu first and then cuda
         inference_fn=gen_fn,
-        inference_args={"no_repeat_ngram_size":3, "min_length":200, "max_length":1000,}
+        inference_args={"no_repeat_ngram_size":3, "min_length":1024, "max_length":2048,"num_beams":2, "early_stopping":False,"repetition_penalty":10.0}
         )
 
     input_prompts = [
-        "summarize: Mi rivolgo a chi vuole un po' di buonsenso, una giustizia che difende gli aggrediti e non gli aggressori, uno Stato che permette di andare in pensione dopo 41 anni aprendo il mondo del lavoro ai nostri giovani, una burocrazia che lascia lavorare serenamente gli imprenditori, una società più sicura per i nostri figli, un Paese dove le culle tornano a riempirsi."
+        "summarize: Mi rivolgo a chi vuole un po' di buonsenso, una giustizia che difende gli aggrediti e non gli aggressori, uno Stato che permette di andare in pensione dopo 41 anni aprendo il mondo del lavoro ai nostri giovani, una burocrazia che lascia lavorare serenamente gli imprenditori, una società più sicura per i nostri figli, un Paese dove le culle tornano a riempirsi.",
+        "summarize: Mi rivolgo a chi vuole un po' di buonsenso, una giustizia che difende gli aggrediti e non gli aggressori, uno Stato che permette di andare in pensione dopo 41 anni aprendo il mondo del lavoro ai nostri giovani, una burocrazia che lascia lavorare serenamente gli imprenditori, una società più sicura per i nostri figli, un Paese dove le culle tornano a riempirsi.",
+        "summarize: Mi rivolgo a chi vuole un po' di buonsenso, una giustizia che difende gli aggrediti e non gli aggressori, uno Stato che permette di andare in pensione dopo 41 anni aprendo il mondo del lavoro ai nostri giovani, una burocrazia che lascia lavorare serenamente gli imprenditori, una società più sicura per i nostri figli, un Paese dove le culle tornano a riempirsi.",
+        "summarize: Buonsenso è cancellare la Legge Fornero!Insieme ai lavoratori delle acciaierie di Piombino.",
+        "summarize: Buonsenso è cancellare la Legge Fornero!Insieme ai lavoratori delle acciaierie di Piombino.",
+        "continue: Buonsenso è cancellare la Legge Fornero!Insieme ai lavoratori delle acciaierie di Piombino."
     ]
 
     tokenizer = AutoTokenizer.from_pretrained(known_args.model_name)
