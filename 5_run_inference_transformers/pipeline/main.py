@@ -89,11 +89,11 @@ def run():
         },
         device="cpu", # try cpu first and then cuda
         inference_fn=gen_fn,
-        inference_args={"max_length":1000,}
+        inference_args={"num_beams":7, "no_repeat_ngram_size":2, "min_length":100, "max_length":1000,}
         )
 
     input_prompts = [
-        "In a shocking finding, scientists discovered a herd of unicorns living in a remote, previously unexplored valley, in the Andes Mountains. Even more surprising to the researchers was the fact that"
+        "summarize: In a shocking finding, scientists discovered a herd of unicorns living in a remote, previously unexplored valley, in the Andes Mountains. Even more surprising to the researchers was the fact that"
     ]
 
     tokenizer = AutoTokenizer.from_pretrained(known_args.model_name)
