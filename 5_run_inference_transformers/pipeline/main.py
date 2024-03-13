@@ -104,6 +104,7 @@ def run():
             | "Preprocess" >> beam.ParDo(Preprocess(tokenizer=tokenizer))
             | "RunInference" >> RunInference(model_handler=model_handler)
             | "PostProcess" >> beam.ParDo(Postprocess(tokenizer=tokenizer)))
+            | "Print" >> beam.Map(print)
 
     # [END Pipeline]
 
