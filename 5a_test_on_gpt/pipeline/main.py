@@ -87,7 +87,7 @@ def run():
         model_params={"config": AutoConfig.from_pretrained("gpt2")},
         device="cpu",
         inference_fn=gen_fn,
-        inference_args={"min_length":1024, "max_length":2048,}
+        inference_args={"min_length":2048, "max_length":4096, "max_new_tokens":1000, "num_return_sequences":20, "temperature":0.9}
     )
 
     input_prompts = [
